@@ -1,293 +1,158 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, Star, Archive, Reply, Trash2, Clock, Tag } from "lucide-react";
+import { FilterTabs } from "@/components/ui/filter-tabs";
+import { EmailItem } from "@/components/ui/email-item";
+import { ActionButton } from "@/components/ui/action-button";
+import { Search, Zap, Archive, RefreshCw, Settings } from "lucide-react";
 
 const SmartInboxPage = () => {
+  const [activeTab, setActiveTab] = useState("primary");
   const [searchTerm, setSearchTerm] = useState("");
+
+  const tabs = [
+    { value: "primary", label: "Primary", count: 12 },
+    { value: "social", label: "Social", count: 8 },
+    { value: "promotions", label: "Promotions", count: 23 },
+    { value: "updates", label: "Updates", count: 15 }
+  ];
 
   const emails = [
     {
-      id: "1",
-      sender: "John Doe",
-      email: "john@company.com",
-      subject: "Project Update - Q4 Planning",
-      preview: "Hi there, I wanted to give you an update on our Q4 planning session...",
-      time: "2 min ago",
-      category: "important",
-      aiLabel: "Urgent",
+      subject: "Your weekly summary is ready",
+      sender: "team@company.com",
+      preview: "Here's what happened this week in your projects...",
+      time: "2h ago",
       isRead: false,
-      hasAttachment: true
+      isImportant: true,
+      category: 'primary' as const
     },
     {
-      id: "2",
-      sender: "GitHub",
-      email: "noreply@github.com",
-      subject: "Pull Request Review Requested",
-      preview: "You've been requested to review a pull request in repository...",
-      time: "15 min ago",
-      category: "important",
-      aiLabel: "Action Required",
-      isRead: false,
-      hasAttachment: false
-    },
-    {
-      id: "3",
-      sender: "TechCrunch",
-      email: "newsletter@techcrunch.com",
-      subject: "Daily Tech News Digest",
-      preview: "Today's top stories: AI breakthrough, startup funding rounds...",
-      time: "1 hour ago",
-      category: "newsletters",
-      aiLabel: "Newsletter",
+      subject: "New connection request",
+      sender: "linkedin@updates.com",
+      preview: "John Doe wants to connect with you on LinkedIn...",
+      time: "4h ago",
       isRead: true,
-      hasAttachment: false
+      isImportant: false,
+      category: 'social' as const
     },
     {
-      id: "4",
-      sender: "Amazon",
-      email: "orders@amazon.com",
-      subject: "Your order has been shipped",
-      preview: "Good news! Your order #123456789 has been shipped and will arrive...",
-      time: "3 hours ago",
-      category: "receipts",
-      aiLabel: "Receipt",
-      isRead: false,
-      hasAttachment: true
+      subject: "Flash Sale - 50% Off Everything!",
+      sender: "deals@store.com",
+      preview: "Don't miss out on our biggest sale of the year...",
+      time: "6h ago",
+      isRead: true,
+      isImportant: false,
+      category: 'promotions' as const
     }
   ];
 
-  const getCategoryColor = (category: string) => {
-    switch (category) {
-      case "important": return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300";
-      case "newsletters": return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300";
-      case "receipts": return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300";
-      case "noise": return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300";
-      default: return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300";
-    }
-  };
-
-  const getAILabelColor = (label: string) => {
-    switch (label) {
-      case "Urgent": return "bg-red-500 text-white";
-      case "Action Required": return "bg-orange-500 text-white";
-      case "Suggested Reply": return "bg-purple-500 text-white";
-      case "Newsletter": return "bg-blue-500 text-white";
-      case "Receipt": return "bg-green-500 text-white";
-      default: return "bg-gray-500 text-white";
-    }
-  };
-
-  const filteredEmails = emails.filter(email =>
-    email.sender.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    email.subject.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredEmails = emails.filter(email => {
+    const matchesTab = activeTab === "all" || email.category === activeTab;
+    const matchesSearch = email.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         email.sender.toLowerCase().includes(searchTerm.toLowerCase());
+    return matchesTab && matchesSearch;
+  });
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Smart Inbox</h1>
-          <p className="text-gray-600 dark:text-gray-300">AI-powered email categorization and management</p>
+          <h1 className="text-2xl font-bold text-gray-900">Smart Inbox</h1>
+          <p className="text-gray-600">AI-powered email organization and management</p>
         </div>
-        <div className="flex items-center space-x-2">
-          <Button variant="outline" size="sm">
-            <Archive className="w-4 h-4 mr-2" />
-            Archive All Read
-          </Button>
-          <Button size="sm">
-            <Reply className="w-4 h-4 mr-2" />
-            AI Summarize
-          </Button>
+        <div className="flex space-x-2">
+          <ActionButton
+            icon={Zap}
+            label="AI Summary"
+            variant="default"
+          />
+          <ActionButton
+            icon={Archive}
+            label="Bulk Archive"
+            variant="outline"
+          />
+          <ActionButton
+            icon={Settings}
+            label="Settings"
+            variant="outline"
+          />
         </div>
       </div>
 
-      {/* Search */}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-        <Input
-          placeholder="Search emails..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-10"
-        />
-      </div>
-
-      {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <Star className="w-5 h-5 text-yellow-600" />
-              <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Important</p>
-                <p className="text-2xl font-bold">{emails.filter(e => e.category === 'important').length}</p>
-              </div>
+      {/* AI Insights */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <Zap className="h-5 w-5 mr-2 text-blue-500" />
+            AI Insights
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <h4 className="font-medium text-blue-900 mb-2">Daily Summary</h4>
+            <p className="text-blue-800 text-sm mb-3">
+              You received 23 new emails today. 12 are primary, 8 are social updates, and 3 require immediate attention.
+            </p>
+            <div className="flex space-x-2">
+              <Button size="sm" variant="outline">
+                <RefreshCw className="h-4 w-4 mr-1" />
+                Refresh Summary
+              </Button>
+              <Button size="sm" variant="outline">
+                Generate Report
+              </Button>
             </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <Tag className="w-5 h-5 text-blue-600" />
-              <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Newsletters</p>
-                <p className="text-2xl font-bold">{emails.filter(e => e.category === 'newsletters').length}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <Archive className="w-5 h-5 text-green-600" />
-              <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Receipts</p>
-                <p className="text-2xl font-bold">{emails.filter(e => e.category === 'receipts').length}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <Clock className="w-5 h-5 text-purple-600" />
-              <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Unread</p>
-                <p className="text-2xl font-bold">{emails.filter(e => !e.isRead).length}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Email Categories */}
-      <Tabs defaultValue="important" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="important">Important</TabsTrigger>
-          <TabsTrigger value="newsletters">Newsletters</TabsTrigger>
-          <TabsTrigger value="receipts">Receipts</TabsTrigger>
-          <TabsTrigger value="noise">Noise</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="important" className="space-y-3">
-          {filteredEmails.filter(email => email.category === 'important').map((email) => (
-            <Card key={email.id} className={`hover:shadow-md transition-shadow cursor-pointer ${!email.isRead ? 'border-l-4 border-l-blue-500' : ''}`}>
-              <CardContent className="p-4">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <h3 className={`font-semibold ${!email.isRead ? 'text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-400'}`}>
-                        {email.sender}
-                      </h3>
-                      <span className="text-sm text-gray-500">{email.email}</span>
-                      <Badge className={getAILabelColor(email.aiLabel)} size="sm">
-                        {email.aiLabel}
-                      </Badge>
-                      {email.hasAttachment && (
-                        <Badge variant="outline" size="sm">📎</Badge>
-                      )}
-                    </div>
-                    <h4 className={`font-medium mb-1 ${!email.isRead ? 'text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-400'}`}>
-                      {email.subject}
-                    </h4>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
-                      {email.preview}
-                    </p>
-                  </div>
-                  <div className="flex items-center space-x-2 ml-4">
-                    <span className="text-sm text-gray-500">{email.time}</span>
-                    <div className="flex space-x-1">
-                      <Button variant="ghost" size="sm">
-                        <Star className="w-4 h-4" />
-                      </Button>
-                      <Button variant="ghost" size="sm">
-                        <Archive className="w-4 h-4" />
-                      </Button>
-                      <Button variant="ghost" size="sm">
-                        <Reply className="w-4 h-4" />
-                      </Button>
-                      <Button variant="ghost" size="sm">
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </TabsContent>
-
-        {/* Other tab contents would show filtered emails */}
-        <TabsContent value="newsletters">
-          {filteredEmails.filter(email => email.category === 'newsletters').map((email) => (
-            <Card key={email.id} className="hover:shadow-md transition-shadow cursor-pointer">
-              <CardContent className="p-4">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <h3 className="font-semibold text-gray-900 dark:text-white">{email.sender}</h3>
-                      <Badge className={getAILabelColor(email.aiLabel)} size="sm">
-                        {email.aiLabel}
-                      </Badge>
-                    </div>
-                    <h4 className="font-medium mb-1 text-gray-900 dark:text-white">{email.subject}</h4>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">{email.preview}</p>
-                  </div>
-                  <div className="flex items-center space-x-2 ml-4">
-                    <span className="text-sm text-gray-500">{email.time}</span>
-                    <Button variant="ghost" size="sm">
-                      <Archive className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </TabsContent>
-
-        <TabsContent value="receipts">
-          {filteredEmails.filter(email => email.category === 'receipts').map((email) => (
-            <Card key={email.id} className="hover:shadow-md transition-shadow cursor-pointer">
-              <CardContent className="p-4">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <h3 className="font-semibold text-gray-900 dark:text-white">{email.sender}</h3>
-                      <Badge className={getAILabelColor(email.aiLabel)} size="sm">
-                        {email.aiLabel}
-                      </Badge>
-                      {email.hasAttachment && (
-                        <Badge variant="outline" size="sm">📎</Badge>
-                      )}
-                    </div>
-                    <h4 className="font-medium mb-1 text-gray-900 dark:text-white">{email.subject}</h4>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">{email.preview}</p>
-                  </div>
-                  <div className="flex items-center space-x-2 ml-4">
-                    <span className="text-sm text-gray-500">{email.time}</span>
-                    <Button variant="ghost" size="sm">
-                      <Archive className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </TabsContent>
-
-        <TabsContent value="noise">
-          <div className="text-center py-12">
-            <div className="text-4xl mb-4">🎉</div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">No Noise Found!</h3>
-            <p className="text-gray-600 dark:text-gray-400">Your AI filters are working perfectly.</p>
           </div>
-        </TabsContent>
-      </Tabs>
+        </CardContent>
+      </Card>
+
+      {/* Filters and Search */}
+      <Card>
+        <CardContent className="pt-6 space-y-4">
+          <FilterTabs
+            tabs={tabs}
+            defaultValue="primary"
+            onValueChange={setActiveTab}
+          />
+          
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+            <Input
+              placeholder="Search emails..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Email List */}
+      <div className="space-y-3">
+        {filteredEmails.length > 0 ? (
+          filteredEmails.map((email, index) => (
+            <EmailItem
+              key={index}
+              {...email}
+              onArchive={() => console.log("Archive", email.subject)}
+              onStar={() => console.log("Star", email.subject)}
+              onReply={() => console.log("Reply", email.subject)}
+              onForward={() => console.log("Forward", email.subject)}
+              onDelete={() => console.log("Delete", email.subject)}
+            />
+          ))
+        ) : (
+          <Card>
+            <CardContent className="text-center py-12">
+              <p className="text-gray-500">No emails found in this category.</p>
+            </CardContent>
+          </Card>
+        )}
+      </div>
     </div>
   );
 };
