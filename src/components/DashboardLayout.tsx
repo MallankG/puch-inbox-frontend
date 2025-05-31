@@ -2,6 +2,12 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import Dashboard from "./Dashboard";
+import SubscriptionsPage from "./SubscriptionsPage";
+import SmartInboxPage from "./SmartInboxPage";
+import AutomationPage from "./AutomationPage";
+import RulesPage from "./RulesPage";
+import ProfilePage from "./ProfilePage";
+import SettingsPage from "./SettingsPage";
 
 const DashboardLayout = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -21,6 +27,18 @@ const DashboardLayout = () => {
     switch (activeTab) {
       case 'dashboard':
         return <Dashboard />;
+      case 'subscriptions':
+        return <SubscriptionsPage />;
+      case 'inbox':
+        return <SmartInboxPage />;
+      case 'automation':
+        return <AutomationPage />;
+      case 'rules':
+        return <RulesPage />;
+      case 'profile':
+        return <ProfilePage />;
+      case 'settings':
+        return <SettingsPage />;
       default:
         return (
           <div className="flex items-center justify-center h-64 text-gray-400">
