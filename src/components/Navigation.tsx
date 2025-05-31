@@ -26,6 +26,7 @@ const Navigation = () => {
         <Button 
           variant="outline" 
           className="border-purple-500/50 text-purple-300 hover:bg-purple-500/20 hover:text-white transition-all duration-300"
+          onClick={() => window.location.href = '/login'}
         >
           Login with Google
         </Button>
