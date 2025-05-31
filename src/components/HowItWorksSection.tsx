@@ -24,42 +24,42 @@ const HowItWorksSection = () => {
   return (
     <section id="how-it-works" className="relative z-10 py-20 px-6">
       <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-16">
+        <div className="text-center mb-16 animate-fade-in">
           <h2 className="text-4xl md:text-5xl font-bold mb-6">
             How It Works
           </h2>
-          <p className="text-xl text-gray-300 max-w-2xl mx-auto">
+          <p className="text-xl text-gray-300 max-w-2xl mx-auto animate-fade-in" style={{ animationDelay: '0.2s' }}>
             Get started in minutes with our simple three-step process.
           </p>
         </div>
 
         <div className="relative">
           {/* Connection line */}
-          <div className="hidden lg:block absolute top-1/2 left-0 right-0 h-0.5 bg-gradient-to-r from-purple-500 via-blue-500 to-green-500 opacity-30"></div>
+          <div className="hidden lg:block absolute top-1/2 left-0 right-0 h-0.5 bg-gradient-to-r from-purple-500 via-blue-500 to-green-500 opacity-30 animate-fade-in" style={{ animationDelay: '0.4s' }}></div>
           
           <div className="grid lg:grid-cols-3 gap-8 lg:gap-12">
             {steps.map((step, index) => (
-              <div key={index} className="relative text-center">
+              <div key={index} className="relative text-center animate-scale-in" style={{ animationDelay: `${0.6 + index * 0.2}s` }}>
                 {/* Step number circle */}
                 <div className="relative mx-auto mb-6">
-                  <div className="w-20 h-20 mx-auto rounded-full bg-gradient-to-r from-purple-600 to-blue-600 flex items-center justify-center text-2xl font-bold glow-purple">
+                  <div className="w-20 h-20 mx-auto rounded-full bg-gradient-to-r from-purple-600 to-blue-600 flex items-center justify-center text-2xl font-bold glow-purple hover-scale transition-transform duration-300">
                     {step.icon}
                   </div>
-                  <div className="absolute -top-2 -right-2 w-8 h-8 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center text-sm font-bold border border-white/20">
+                  <div className="absolute -top-2 -right-2 w-8 h-8 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center text-sm font-bold border border-white/20 animate-fade-in" style={{ animationDelay: `${0.8 + index * 0.2}s` }}>
                     {step.number}
                   </div>
                 </div>
 
-                <h3 className="text-2xl font-semibold mb-4 text-white">
+                <h3 className="text-2xl font-semibold mb-4 text-white animate-slide-in-right" style={{ animationDelay: `${1.0 + index * 0.2}s` }}>
                   {step.title}
                 </h3>
-                <p className="text-gray-400 leading-relaxed max-w-sm mx-auto">
+                <p className="text-gray-400 leading-relaxed max-w-sm mx-auto animate-fade-in" style={{ animationDelay: `${1.2 + index * 0.2}s` }}>
                   {step.description}
                 </p>
 
                 {/* Arrow for desktop */}
                 {index < steps.length - 1 && (
-                  <div className="hidden lg:block absolute top-10 -right-6 text-purple-400 text-2xl">
+                  <div className="hidden lg:block absolute top-10 -right-6 text-purple-400 text-2xl animate-slide-in-right" style={{ animationDelay: `${1.4 + index * 0.2}s` }}>
                     →
                   </div>
                 )}

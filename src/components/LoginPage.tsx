@@ -155,21 +155,6 @@ const LoginPage = () => {
           <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
         </div>
       </div>
-
-      {/* Side panel for desktop */}
-      <div className="hidden lg:block absolute right-12 top-1/2 transform -translate-y-1/2 max-w-md animate-fade-in" style={{ animationDelay: '0.5s' }}>
-        <div className="glass-card p-8 border-white/10">
-          <div className="text-center">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-r from-green-500 to-emerald-500 flex items-center justify-center text-2xl">
-              ✨
-            </div>
-            <blockquote className="text-lg text-gray-300 italic mb-4">
-              "Puch saved me 2 hours every day. My inbox finally makes sense!"
-            </blockquote>
-            <cite className="text-sm text-gray-400">— Sarah Chen, Startup Founder</cite>
-          </div>
-        </div>
-      </div>
     </div>
   );
 };

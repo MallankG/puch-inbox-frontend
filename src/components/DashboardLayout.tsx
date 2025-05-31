@@ -34,24 +34,9 @@ const DashboardLayout = () => {
   };
 
   return (
-    <div className="min-h-screen aurora-bg text-white relative overflow-hidden flex">
-      {/* Floating particles */}
-      <div className="particles">
-        {[...Array(10)].map((_, i) => (
-          <div
-            key={i}
-            className="particle"
-            style={{
-              left: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 15}s`,
-              animationDuration: `${15 + Math.random() * 10}s`,
-            }}
-          />
-        ))}
-      </div>
-
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white flex">
       {/* Sidebar */}
-      <div className={`relative z-10 transition-all duration-300 ${sidebarCollapsed ? 'w-16' : 'w-64'} glass-card border-r border-white/10`}>
+      <div className={`transition-all duration-300 ${sidebarCollapsed ? 'w-16' : 'w-64'} bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 shadow-sm`}>
         <div className="p-4">
           {/* Logo */}
           <div className="flex items-center space-x-2 mb-8">
@@ -59,22 +44,22 @@ const DashboardLayout = () => {
               <span className="text-white font-bold text-lg">P</span>
             </div>
             {!sidebarCollapsed && (
-              <span className="text-xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
+              <span className="text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
                 Puch
               </span>
             )}
           </div>
 
           {/* Navigation */}
-          <nav className="space-y-2">
+          <nav className="space-y-1">
             {navItems.map((item) => (
               <button
                 key={item.id}
                 onClick={() => setActiveTab(item.id)}
-                className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg transition-all duration-200 hover-scale ${
+                className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-all duration-200 text-left ${
                   activeTab === item.id
-                    ? 'bg-purple-600/30 text-white border border-purple-500/50'
-                    : 'text-gray-400 hover:text-white hover:bg-white/10'
+                    ? 'bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-700'
+                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-700'
                 }`}
               >
                 <span className="text-lg">{item.icon}</span>
@@ -89,25 +74,25 @@ const DashboardLayout = () => {
           variant="ghost"
           size="sm"
           onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-          className="absolute bottom-4 left-4 text-gray-400 hover:text-white"
+          className="absolute bottom-4 left-4 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
         >
           {sidebarCollapsed ? '→' : '←'}
         </Button>
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 relative z-10">
+      <div className="flex-1">
         {/* Top Bar */}
-        <header className="glass-card border-b border-white/10 p-4">
+        <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 shadow-sm">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <h1 className="text-xl font-semibold text-white capitalize">{activeTab}</h1>
+              <h1 className="text-xl font-semibold text-gray-900 dark:text-white capitalize">{activeTab}</h1>
             </div>
             <div className="flex items-center space-x-4">
-              <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
+              <Button variant="ghost" size="sm" className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
                 🔔
               </Button>
-              <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
+              <Button variant="ghost" size="sm" className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
                 🔍
               </Button>
               <div className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 flex items-center justify-center">
@@ -118,7 +103,7 @@ const DashboardLayout = () => {
         </header>
 
         {/* Content */}
-        <main className="p-6">
+        <main className="p-6 bg-gray-50 dark:bg-gray-900 min-h-[calc(100vh-73px)]">
           {renderContent()}
         </main>
       </div>
