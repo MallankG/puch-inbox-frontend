@@ -1,9 +1,9 @@
-
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useState } from "react";
+import BackgroundIcons from "./BackgroundIcons";
 
 const LoginPage = () => {
   const [step, setStep] = useState<'google' | 'phone' | 'otp'>('google');
@@ -26,20 +26,8 @@ const LoginPage = () => {
 
   return (
     <div className="min-h-screen aurora-bg text-white relative overflow-hidden flex items-center justify-center">
-      {/* Floating particles */}
-      <div className="particles">
-        {[...Array(15)].map((_, i) => (
-          <div
-            key={i}
-            className="particle"
-            style={{
-              left: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 15}s`,
-              animationDuration: `${15 + Math.random() * 10}s`,
-            }}
-          />
-        ))}
-      </div>
+      {/* Floating mail icons */}
+      <BackgroundIcons count={15} />
 
       <div className="relative z-10 w-full max-w-md px-6">
         <Card className="glass-card border-white/20 animate-fade-in">

@@ -1,8 +1,7 @@
-
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ActionButton } from "./action-button";
-import { Unsubscribe, Archive, Star, MoreHorizontal } from "lucide-react";
+import { X, Archive, Star, MoreHorizontal } from "lucide-react";
 
 interface SubscriptionItemProps {
   name: string;
@@ -69,7 +68,7 @@ export const SubscriptionItem = ({
           
           <div className="flex items-center space-x-2">
             <ActionButton
-              icon={Unsubscribe}
+              icon={X}
               label="Unsubscribe"
               variant="destructive"
               onClick={onUnsubscribe}

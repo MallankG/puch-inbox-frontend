@@ -20,12 +20,12 @@ const Navigation = () => {
         <a href="#how-it-works" className="text-gray-300 hover:text-white transition-colors">
           How it Works
         </a>
-        <a href="#pricing" className="text-gray-300 hover:text-white transition-colors">
-          Pricing
+        <a href="#testimonials" className="text-gray-300 hover:text-white transition-colors">
+          Testimonials
         </a>
-        <Button 
-          variant="outline" 
-          className="border-purple-500/50 text-purple-300 hover:bg-purple-500/20 hover:text-white transition-all duration-300"
+        <Button
+          size="sm"
+          className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-4 py-2 glow-purple hover-scale transition-all duration-300"
           onClick={() => window.location.href = '/login'}
         >
           Login with Google

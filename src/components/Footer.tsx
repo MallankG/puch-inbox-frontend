@@ -1,3 +1,4 @@
+import { FaGithub } from "react-icons/fa";
 
 const Footer = () => {
   return (
@@ -46,19 +47,26 @@ const Footer = () => {
         {/* Bottom section */}
         <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row items-center justify-between">
           <div className="flex items-center space-x-6 mb-4 md:mb-0">
-            <a href="#privacy" className="text-gray-400 hover:text-white transition-colors text-sm">
-              Privacy Policy
+            <a
+              href="https://github.com/mallankg"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-gray-400 hover:text-white transition-colors text-sm"
+            >
+              Made by Mallank Gogri
             </a>
-            <a href="#terms" className="text-gray-400 hover:text-white transition-colors text-sm">
-              Terms of Service
-            </a>
-            <a href="#security" className="text-gray-400 hover:text-white transition-colors text-sm">
-              Security
+            <a
+              href="https://github.com/mallankg"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center text-gray-400 hover:text-white transition-colors text-sm"
+            >
+              <FaGithub className="mr-1" />MallankG
             </a>
           </div>
           
           <div className="text-gray-400 text-sm">
-            © 2024 Puch. All rights reserved.
+            © 2025 Puch. All rights reserved.
           </div>
         </div>
       </div>

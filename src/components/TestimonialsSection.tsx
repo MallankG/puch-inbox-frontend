@@ -24,7 +24,7 @@ const testimonials = [
 
 const TestimonialsSection = () => {
   return (
-    <section className="relative z-10 py-20 px-6">
+    <section id="testimonials" className="relative z-10 py-20 px-6">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-16 animate-fade-in">
           <h2 className="text-4xl md:text-5xl font-bold mb-6">
@@ -76,16 +76,6 @@ const TestimonialsSection = () => {
         </div>
 
         {/* Trust badges */}
-        <div className="mt-16 text-center animate-fade-in" style={{ animationDelay: '1.8s' }}>
-          <p className="text-gray-400 mb-8">Trusted by teams at</p>
-          <div className="flex items-center justify-center space-x-12 opacity-60">
-            {['Google', 'Microsoft', 'Stripe', 'Notion'].map((company, index) => (
-              <div key={company} className="text-2xl font-bold animate-scale-in" style={{ animationDelay: `${2.0 + index * 0.1}s` }}>
-                {company}
-              </div>
-            ))}
-          </div>
-        </div>
       </div>
     </section>
   );
