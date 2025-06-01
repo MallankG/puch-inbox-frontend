@@ -11,8 +11,7 @@ const LoginPage = () => {
   const [otp, setOtp] = useState('');
 
   const handleGoogleLogin = () => {
-    // Simulate Google login
-    setStep('phone');
+    window.location.href = 'http://localhost:4000/auth/login';
   };
 
   const handlePhoneSubmit = () => {

@@ -1,6 +1,6 @@
-
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 import Dashboard from "./Dashboard";
 import SubscriptionsPage from "./SubscriptionsPage";
 import SmartInboxPage from "./SmartInboxPage";
@@ -12,6 +12,9 @@ import SettingsPage from "./SettingsPage";
 const DashboardLayout = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const avatarRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
 
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: '📊' },
@@ -22,6 +25,21 @@ const DashboardLayout = () => {
     { id: 'profile', label: 'Profile', icon: '👤' },
     { id: 'settings', label: 'Settings', icon: '🔧' },
   ];
+
+  useEffect(() => {
+    // Check authentication on mount
+    fetch("http://localhost:4000/api/user/me", {
+      credentials: "include"
+    })
+      .then(res => {
+        if (res.status === 401) {
+          navigate("/login");
+        }
+      })
+      .catch(() => {
+        navigate("/login");
+      });
+  }, [navigate]);
 
   const renderContent = () => {
     switch (activeTab) {
@@ -113,9 +131,20 @@ const DashboardLayout = () => {
               <Button variant="ghost" size="sm" className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
                 🔍
               </Button>
-              <div className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 flex items-center justify-center">
-                <span className="text-white text-sm font-bold">A</span>
-              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                className="bg-gradient-to-r from-purple-500 to-blue-500 text-white font-bold"
+                onClick={async () => {
+                  await fetch("http://localhost:4000/auth/logout", {
+                    method: "POST",
+                    credentials: "include"
+                  });
+                  window.location.href = "/";
+                }}
+              >
+                Log out
+              </Button>
             </div>
           </div>
         </header>
