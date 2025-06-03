@@ -29,18 +29,15 @@ export const SubscriptionItem = ({
   onMarkImportant
 }: SubscriptionItemProps) => {
   const getCategoryColor = () => {
-    switch (category) {
-      case 'paid': return 'bg-blue-100 text-blue-800';
-      case 'promotional': return 'bg-orange-100 text-orange-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
+    // Use a bold blue gradient similar to the Google login button
+    return 'bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold shadow-sm';
   };
 
   const getStatusColor = () => {
     switch (status) {
-      case 'unsubscribed': return 'bg-red-100 text-red-800';
-      case 'processing': return 'bg-yellow-100 text-yellow-800';
-      default: return 'bg-green-100 text-green-800';
+      case 'unsubscribed': return 'bg-red-600 text-white font-semibold';
+      case 'processing': return 'bg-yellow-400 text-gray-900 font-semibold';
+      default: return 'bg-green-600 text-white font-semibold'; // active
     }
   };
 
@@ -59,11 +56,6 @@ export const SubscriptionItem = ({
               </Badge>
             </div>
             <p className="text-sm text-gray-600 mb-1">{email}</p>
-            <div className="flex items-center space-x-4 text-xs text-gray-500">
-              <span>Frequency: {frequency}</span>
-              <span>Last: {lastReceived}</span>
-              {cost && <span>Cost: {cost}</span>}
-            </div>
           </div>
           
           <div className="flex items-center space-x-2">
@@ -83,12 +75,7 @@ export const SubscriptionItem = ({
               icon={Star}
               label="Important"
               onClick={onMarkImportant}
-            />
-            <ActionButton
-              icon={MoreHorizontal}
-              label=""
-              size="icon"
-            />
+            />  
           </div>
         </div>
       </CardContent>
