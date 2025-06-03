@@ -1,7 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ActionButton } from "./action-button";
-import { X, Archive, Star, MoreHorizontal } from "lucide-react";
+import { X, Archive, Plus } from "lucide-react";
 
 interface SubscriptionItemProps {
   name: string;
@@ -10,10 +10,13 @@ interface SubscriptionItemProps {
   frequency: string;
   lastReceived: string;
   cost?: string;
-  status: 'active' | 'unsubscribed' | 'processing';
+  status: string; // allow any string for status
+  archived?: boolean;
   onUnsubscribe?: () => void;
+  onSubscribe?: () => void;
   onArchive?: () => void;
-  onMarkImportant?: () => void;
+  onUnmarkImportant?: () => void;
+  onUnarchive?: () => void;
 }
 
 export const SubscriptionItem = ({
@@ -24,9 +27,12 @@ export const SubscriptionItem = ({
   lastReceived,
   cost,
   status,
+  archived = false,
   onUnsubscribe,
+  onSubscribe,
   onArchive,
-  onMarkImportant
+  onUnmarkImportant,
+  onUnarchive
 }: SubscriptionItemProps) => {
   const getCategoryColor = () => {
     // Use a bold blue gradient similar to the Google login button
@@ -54,28 +60,47 @@ export const SubscriptionItem = ({
               <Badge className={getStatusColor()}>
                 {status}
               </Badge>
+              {archived && (
+                <Badge className="bg-gray-400 text-white font-semibold">Archived</Badge>
+              )}
             </div>
             <p className="text-sm text-gray-600 mb-1">{email}</p>
           </div>
-          
           <div className="flex items-center space-x-2">
-            <ActionButton
-              icon={X}
-              label="Unsubscribe"
-              variant="destructive"
-              onClick={onUnsubscribe}
-              disabled={status === 'unsubscribed'}
-            />
-            <ActionButton
-              icon={Archive}
-              label="Archive"
-              onClick={onArchive}
-            />
-            <ActionButton
-              icon={Star}
-              label="Important"
-              onClick={onMarkImportant}
-            />  
+            {archived ? (
+              <ActionButton
+                icon={Archive}
+                label="Unarchive"
+                onClick={onUnarchive}
+                className="min-w-[120px] px-4 bg-blue-500 text-white hover:bg-blue-600 border-blue-700"
+              />
+            ) : (
+              <>
+                {status === 'unsubscribed' ? (
+                  <ActionButton
+                    icon={Plus}
+                    label={'Subscribe'}
+                    variant="default"
+                    className="min-w-[148px] px-4 bg-green-600 text-white hover:bg-green-700 border-green-700"
+                    onClick={onSubscribe}
+                  />
+                ) : (
+                  <ActionButton
+                    icon={X}
+                    label="Unsubscribe"
+                    variant="destructive"
+                    className="min-w-[148px] px-4 bg-red-600 text-white hover:bg-red-700 border-red-700"
+                    onClick={onUnsubscribe}
+                  />
+                )}
+                <ActionButton
+                  icon={Archive}
+                  label="Archive"
+                  onClick={onArchive}
+                  className="min-w-[120px] px-4 bg-gray-500 text-white hover:bg-gray-600 border-gray-700"
+                />
+              </>
+            )}
           </div>
         </div>
       </CardContent>
