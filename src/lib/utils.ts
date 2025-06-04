@@ -5,65 +5,6 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-// Keyword sets for classification
-const paid_keywords = [
-  "invoice",
-  "payment",
-  "receipt",
-  "billing",
-  "subscription renewal",
-  "charged",
-  "paid plan",
-];
-const free_keywords = [
-  "free",
-  "trial",
-  "welcome",
-  "newsletter",
-  "sign up",
-  "join",
-  "open source",
-];
-const promo_keywords = [
-  "offer",
-  "discount",
-  "promo",
-  "sale",
-  "upgrade",
-  "deal",
-  "special",
-  "limited time",
-];
-
-export function isSubscriptionEmail(emailObj: any) {
-  return !!emailObj.listUnsubscribe;
-}
-
-export function classifySubscriptionEmail(subject: string, body: string) {
-  const text = ((subject || "") + " " + (body || "")).toLowerCase();
-  if (paid_keywords.some((keyword) => text.includes(keyword))) {
-    return "Paid";
-  } else if (free_keywords.some((keyword) => text.includes(keyword))) {
-    return "Free";
-  } else if (promo_keywords.some((keyword) => text.includes(keyword))) {
-    return "Promotional";
-  } else {
-    return "Unknown";
-  }
-}
-
-export function filterAndClassifySubscriptions(emailList: any[]) {
-  return emailList
-    .filter(isSubscriptionEmail)
-    .map((email) => ({
-      ...email,
-      category: classifySubscriptionEmail(
-        email.subject,
-        email.body || email.snippet
-      ),
-    }));
-}
-
 // Utility to fetch all emails from backend
 export async function fetchAllEmails(
   setLoading?: (loading: boolean) => void,

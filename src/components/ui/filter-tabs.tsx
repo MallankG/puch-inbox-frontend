@@ -16,7 +16,7 @@ interface FilterTabsProps {
 export const FilterTabs = ({ tabs, defaultValue, onValueChange, className }: FilterTabsProps) => {
   return (
     <Tabs defaultValue={defaultValue} onValueChange={onValueChange} className={className}>
-      <TabsList className="grid w-full grid-cols-5 justify-between items-center">
+      <TabsList className="grid w-full grid-cols-6 justify-between items-center">
         {tabs.map((tab) => (
           <TabsTrigger key={tab.value} value={tab.value} className="flex items-center space-x-2">
             <span>{tab.label}</span>

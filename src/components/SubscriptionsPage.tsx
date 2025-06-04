@@ -4,18 +4,20 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { FilterTabs } from "@/components/ui/filter-tabs";
 import { SubscriptionItem } from "@/components/ui/subscription-item";
-import { Search, Filter, Download, RefreshCw } from "lucide-react";
-import { useEmails } from "@/lib/EmailsContext";
-import { filterAndClassifySubscriptions, unsubscribeFromProvider } from "@/lib/utils";
+import { Search, Download, RefreshCw } from "lucide-react";
+import { unsubscribeFromProvider } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
-import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogFooter, AlertDialogTitle, AlertDialogDescription, AlertDialogAction, AlertDialogCancel } from "@/components/ui/alert-dialog";
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogFooter, AlertDialogTitle, AlertDialogDescription, AlertDialogAction, AlertDialogCancel } from "@/components/ui/alert-dialog";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 const SubscriptionsPage = () => {
   const [activeTab, setActiveTab] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
-  const { emails, setEmails, loading, error, refresh, forceScan } = useEmails();
   const hasFetched = useRef(false);
   const [unsubscribing, setUnsubscribing] = useState<string | null>(null);
+  const [archiving, setArchiving] = useState<string | null>(null);
+  const [unarchiving, setUnarchiving] = useState<string | null>(null);
   const [unsubscribeError, setUnsubscribeError] = useState<string | null>(null);
   const [unsubscribeSuccess, setUnsubscribeSuccess] = useState<string | null>(null);
   const [subscriptionsState, setSubscriptionsState] = useState<{[key: string]: any}>({});
@@ -24,98 +26,78 @@ const SubscriptionsPage = () => {
   const [pendingResubscribe, setPendingResubscribe] = useState<string | null>(null);
   const [scanning, setScanning] = useState(false);
   const [subscriptionsReady, setSubscriptionsReady] = useState(false);
+  const [subscriptions, setSubscriptions] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Classify subscriptions from all emails
-  const subscriptions = filterAndClassifySubscriptions(emails);
-
-  // Remove duplicate subscriptions by email (and name)
-  const uniqueSubscriptions = Array.from(
-    new Map(subscriptions.map(s => [s.email.toLowerCase(), {
-      ...s,
-      ...(subscriptionsState[s.email.toLowerCase()] || {})
-    }])).values()
-  );
-
-  const filteredSubscriptions = uniqueSubscriptions.filter(sub => {
-    const matchesTab = activeTab === "all" || sub.category === activeTab;
-    const matchesSearch = sub.name?.toLowerCase().includes(searchTerm.toLowerCase()) || sub.email?.toLowerCase().includes(searchTerm.toLowerCase());
-    // Show all subscriptions, both archived and non-archived
-    return matchesTab && matchesSearch;
-  });
-
-  // Send all subscriptions to backend for upsert (insert if unique)
+  // Fetch all subscriptions from MongoDB on mount
   useEffect(() => {
-    if (uniqueSubscriptions.length > 0) {
-      // Only upsert the provider whose status just changed (unsubscribe/subscribe)
-      // So, do NOT upsert all subscriptions here on every change
-      // Remove this effect or restrict it to only run on initial mount or full scan
-    }
-    // eslint-disable-next-line
-  }, []); // Only run on mount (or remove entirely if not needed)
-
-  const tabs = [
-    { value: "all", label: "All", count: uniqueSubscriptions.length },
-    { value: "Free", label: "Free", count: uniqueSubscriptions.filter(s => s.category === 'Free').length },
-    { value: "Paid", label: "Paid", count: uniqueSubscriptions.filter(s => s.category === 'Paid').length },
-    { value: "Promotional", label: "Promotional", count: uniqueSubscriptions.filter(s => s.category === 'Promotional').length },
-    { value: "Unknown", label: "Other", count: uniqueSubscriptions.filter(s => s.category === 'Unknown').length }
-  ];
-
-  // Fetch unsubscribed list on mount and update subscriptionsState
-  useEffect(() => {
-    let unsubscribedLoaded = false;
-    let emailsLoaded = false;
-
-    // Helper to check if both are loaded
-    function checkReady() {
-      if (unsubscribedLoaded && emailsLoaded) setSubscriptionsReady(true);
-    }
-
-    // Fetch unsubscribed list
-    fetch('http://localhost:4000/api/user/emails/unsubscribed', { credentials: 'include' })
+    setLoading(true);
+    fetch('http://localhost:4000/api/user/emails/subscriptions', { credentials: 'include' })
       .then(res => res.json())
       .then(data => {
         if (data.status === 'done' && Array.isArray(data.emails)) {
-          setSubscriptionsState(prev => {
-            const updated = { ...prev };
-            data.emails.forEach(sub => {
-              const key = sub.email.toLowerCase();
-              updated[key] = {
-                ...sub,
-                status: 'unsubscribed',
-              };
-            });
-            return updated;
-          });
+          setSubscriptions(data.emails);
+        } else {
+          setError(data.error || 'Failed to load subscriptions');
         }
-        unsubscribedLoaded = true;
-        checkReady();
+        setLoading(false);
+        setSubscriptionsReady(true);
+      })
+      .catch(err => {
+        setError('Failed to load subscriptions');
+        setLoading(false);
       });
-
-    // Listen for emails loaded
-    if (!loading) {
-      emailsLoaded = true;
-      checkReady();
-    }
-    // If emails are still loading, wait for them
-    // This effect only runs on mount, so we need another effect to watch emails/ready
-    // eslint-disable-next-line
   }, []);
 
-  // Watch emails loading state to set subscriptionsReady
-  useEffect(() => {
-    if (!loading) {
-      setSubscriptionsReady(prev => {
-        // Only set to true if unsubscribedLoaded already ran
-        return prev || subscriptionsReady;
-      });
+  // Use subscriptions directly, merging with local state if needed
+  const mergedSubscriptions = subscriptions.map(s => ({
+    ...s,
+    ...(subscriptionsState[s.email?.toLowerCase()] || {})
+  }));
+
+  const filteredSubscriptions = mergedSubscriptions.filter(sub => {
+    let matchesTab = false;
+    if (activeTab === "all") {
+      matchesTab = true;
+    } else if (activeTab === "Archived") {
+      matchesTab = sub.archived === true;
+    } else {
+      matchesTab = sub.category === activeTab && sub.archived !== true;
     }
-    // eslint-disable-next-line
-  }, [loading]);
+    const matchesSearch = sub.name?.toLowerCase().includes(searchTerm.toLowerCase()) || sub.email?.toLowerCase().includes(searchTerm.toLowerCase());
+    return matchesTab && matchesSearch;
+  });
+
+  const tabs = [
+    { value: "all", label: "All", count: mergedSubscriptions.filter(s => s.archived !== true).length },
+    { value: "Free", label: "Free", count: mergedSubscriptions.filter(s => s.category === 'Free' && s.archived !== true).length },
+    { value: "Paid", label: "Paid", count: mergedSubscriptions.filter(s => s.category === 'Paid' && s.archived !== true).length },
+    { value: "Promotional", label: "Promotional", count: mergedSubscriptions.filter(s => s.category === 'Promotional' && s.archived !== true).length },
+    { value: "Unknown", label: "Other", count: mergedSubscriptions.filter(s => s.category === 'Unknown' && s.archived !== true).length },
+    { value: "Archived", label: "Archived", count: mergedSubscriptions.filter(s => s.archived === true).length },
+  ];
+
+  // Scan for new subscriptions (refresh from backend)
+  const handleScan = async () => {
+    hasFetched.current = false;
+    setScanning(true);
+    setUnsubscribeError(null);
+    setUnsubscribeSuccess(null);
+    try {
+      const res = await fetch('http://localhost:4000/api/user/emails/subscriptions/scan', { credentials: 'include' });
+      const data = await res.json();
+      if (data.status === 'done') {
+        setSubscriptions(data.emails || []);
+        setUnsubscribedAlerts(data.unsubscribedAlerts || []);
+      }
+    } catch {}
+    setScanning(false);
+  };
 
   // Archive handler
   const handleArchive = async (subscription: any) => {
-    console.log('[Frontend] Archiving', subscription.email);
+    setArchiving(subscription.email);
     const res = await fetch('http://localhost:4000/api/user/emails/archive', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -123,6 +105,9 @@ const SubscriptionsPage = () => {
       body: JSON.stringify({ email: subscription.email })
     });
     if (res.ok) {
+      setSubscriptions(prev => prev.map(s =>
+        s.email === subscription.email ? { ...s, archived: true } : s
+      ));
       setSubscriptionsState(prev => ({
         ...prev,
         [subscription.email.toLowerCase()]: {
@@ -130,23 +115,23 @@ const SubscriptionsPage = () => {
           archived: true,
         }
       }));
+      setActiveTab(tab => tab);
       toast({
         title: 'Archived',
         description: `${subscription.name || subscription.email} has been archived.`,
       });
-      console.log('[Frontend] Archive success for', subscription.email);
     } else {
-      console.error('[Frontend] Archive failed for', subscription.email);
       toast({
         title: 'Archive Failed',
         description: `Failed to archive ${subscription.name || subscription.email}.`,
         variant: 'destructive',
       });
     }
+    setArchiving(null);
   };
   // Unarchive handler
   const handleUnarchive = async (subscription: any) => {
-    console.log('[Frontend] Unarchiving', subscription.email);
+    setUnarchiving(subscription.email);
     const res = await fetch('http://localhost:4000/api/user/emails/unarchive', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -154,6 +139,9 @@ const SubscriptionsPage = () => {
       body: JSON.stringify({ email: subscription.email })
     });
     if (res.ok) {
+      setSubscriptions(prev => prev.map(s =>
+        s.email === subscription.email ? { ...s, archived: false } : s
+      ));
       setSubscriptionsState(prev => ({
         ...prev,
         [subscription.email.toLowerCase()]: {
@@ -161,19 +149,68 @@ const SubscriptionsPage = () => {
           archived: false,
         }
       }));
+      setActiveTab(tab => tab);
       toast({
         title: 'Unarchived',
         description: `${subscription.name || subscription.email} has been unarchived.`,
       });
-      console.log('[Frontend] Unarchive success for', subscription.email);
     } else {
-      console.error('[Frontend] Unarchive failed for', subscription.email);
       toast({
         title: 'Unarchive Failed',
         description: `Failed to unarchive ${subscription.name || subscription.email}.`,
         variant: 'destructive',
       });
     }
+    setUnarchiving(null);
+  };
+
+  const handleExportPDF = () => {
+    const doc = new jsPDF();
+    const categories = [
+      { label: "Free", value: "Free" },
+      { label: "Paid", value: "Paid" },
+      { label: "Promotional", value: "Promotional" },
+      { label: "Other", value: "Unknown" },
+      { label: "Archived", value: "Archived" },
+    ];
+    let y = 10;
+
+    categories.forEach(({ label, value }) => {
+      let subs;
+      if (value === "Archived") {
+        subs = mergedSubscriptions.filter(sub => sub.archived === true);
+      } else if (value === "Unknown") {
+        subs = mergedSubscriptions.filter(sub => sub.category === "Unknown" && sub.archived !== true);
+      } else {
+        subs = mergedSubscriptions.filter(sub => sub.category === value && sub.archived !== true);
+      }
+      if (subs.length === 0) return;
+
+      doc.setFontSize(16);
+      doc.text(label, 14, y);
+      y += 6;
+
+      // autoTable does not return a value in the default import, so we use doc.lastAutoTable.finalY if available
+      autoTable(doc, {
+        startY: y,
+        head: [["Name", "Email", "Status", "Last Received"]],
+        body: subs.map(sub => [
+          sub.name || "",
+          sub.email || "",
+          sub.status || "active",
+          // Try multiple possible fields for last received date
+          sub.lastReceived || sub.last_received || sub.date || sub.lastSeen || "",
+        ]),
+        theme: "striped",
+        styles: { fontSize: 10 },
+        headStyles: { fillColor: [99, 102, 241] },
+        margin: { left: 14, right: 14 },
+      });
+      // Safely get the finalY position for the next table
+      y = (doc as any).lastAutoTable?.finalY ? (doc as any).lastAutoTable.finalY + 10 : y + 30;
+    });
+
+    doc.save("subscriptions.pdf");
   };
 
   return (
@@ -185,7 +222,7 @@ const SubscriptionsPage = () => {
           <p className="text-gray-600">Manage all your email subscriptions in one place</p>
         </div>
         <div className="flex space-x-2">
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" onClick={handleExportPDF}>
             <Download className="h-4 w-4 mr-2" />
             Export
           </Button>
@@ -199,21 +236,7 @@ const SubscriptionsPage = () => {
             <div className="flex items-center justify-between">
               <CardTitle>Filter Subscriptions</CardTitle>
               <div className="flex gap-2">
-                <Button variant="outline" size="sm" onClick={async () => {
-                  hasFetched.current = false;
-                  setScanning(true);
-                  setUnsubscribeError(null);
-                  setUnsubscribeSuccess(null);
-                  try {
-                    const res = await fetch('http://localhost:4000/api/user/emails/subscriptions/scan', { credentials: 'include' });
-                    const data = await res.json();
-                    if (data.status === 'done') {
-                      setEmails(data.emails || []);
-                      setUnsubscribedAlerts(data.unsubscribedAlerts || []);
-                    }
-                  } catch {}
-                  setScanning(false);
-                }}>
+                <Button variant="outline" size="sm" onClick={handleScan}>
                   <RefreshCw className="h-4 w-4 mr-2" />
                   Scan for New Subscriptions
                 </Button>
@@ -244,7 +267,7 @@ const SubscriptionsPage = () => {
 
       {/* Subscriptions List */}
       <div className="flex-1 min-h-0 max-h-full overflow-y-auto px-6 pb-6">
-        {(!subscriptionsReady || loading || scanning) ? (
+        {(loading || scanning || !subscriptionsReady) ? (
           <div className="text-center py-12 text-gray-500">Processing, validating, and computing your subscriptions...</div>
         ) : error ? (
           <div className="text-center py-12 text-red-500">{error}</div>
@@ -253,25 +276,26 @@ const SubscriptionsPage = () => {
             <SubscriptionItem
               key={subscription.id || index}
               {...subscription}
+              id={subscription.id || subscription.messageId}
               archived={subscription.archived}
               onArchive={() => handleArchive(subscription)}
               onUnarchive={() => handleUnarchive(subscription)}
-              onMarkImportant={() => console.log("Mark Important", subscription.name)}
-              status={
-                (() => {
-                  const key = subscription.email.toLowerCase();
-                  const stateStatus = subscriptionsState[key]?.status;
-                  const fallbackStatus = (unsubscribing === subscription.email ? 'processing' : subscription.status);
-                  const finalStatus = stateStatus || fallbackStatus || 'active';
-                  return finalStatus;
-                })()
-              }
+              status={(() => {
+                const key = subscription.email.toLowerCase();
+                const stateStatus = subscriptionsState[key]?.status;
+                if (unsubscribing === subscription.email) return 'processing';
+                if (archiving === subscription.email) return 'processing';
+                if (unarchiving === subscription.email) return 'processing';
+                const fallbackStatus = subscription.status;
+                const finalStatus = stateStatus || fallbackStatus || 'active';
+                return finalStatus;
+              })()}
               onUnsubscribe={async () => {
                 setUnsubscribing(subscription.email);
                 setUnsubscribeError(null);
                 setUnsubscribeSuccess(null);
                 try {
-                  const result = await unsubscribeFromProvider({ email: subscription.email, messageId: subscription.id });
+                  const result = await unsubscribeFromProvider({ email: subscription.email, messageId: subscription.id || subscription.messageId });
                   if (result.url) {
                     setPendingManualUnsub({ url: result.url, message: result.message });
                     // Sync with backend for manual unsubscribe
@@ -279,7 +303,11 @@ const SubscriptionsPage = () => {
                       method: 'POST',
                       headers: { 'Content-Type': 'application/json' },
                       credentials: 'include',
-                      body: JSON.stringify({ email: subscription.email, messageId: subscription.id, lastSeen: subscription.date })
+                      body: JSON.stringify({
+                        email: subscription.email,
+                        messageId: subscription.id || subscription.messageId,
+                        lastSeen: subscription.date
+                      })
                     });
                     setSubscriptionsState(prev => ({
                       ...prev,
@@ -294,7 +322,6 @@ const SubscriptionsPage = () => {
                     });
                   } else {
                     // Automatic unsubscribe: backend already called in unsubscribeFromProvider
-                    setUnsubscribeSuccess('Unsubscribe request processed');
                     toast({
                       title: 'Successfully unsubscribed',
                       description: `${subscription.name || subscription.email} has been unsubscribed.`,
@@ -405,7 +432,7 @@ const SubscriptionsPage = () => {
               <AlertDialogCancel onClick={() => setPendingResubscribe(null)}>Cancel</AlertDialogCancel>
               <AlertDialogAction onClick={async () => {
                 // Find the subscription object for the pendingResubscribe email
-                const resubSub = uniqueSubscriptions.find(s => s.email === pendingResubscribe);
+                const resubSub = mergedSubscriptions.find(s => s.email === pendingResubscribe);
                 await fetch('http://localhost:4000/api/user/emails/mark-subscribed', {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },

@@ -12,6 +12,7 @@ interface SubscriptionItemProps {
   cost?: string;
   status: string; // allow any string for status
   archived?: boolean;
+  id?: string; // messageId for unsubscribe
   onUnsubscribe?: () => void;
   onSubscribe?: () => void;
   onArchive?: () => void;
@@ -23,19 +24,15 @@ export const SubscriptionItem = ({
   name,
   email,
   category,
-  frequency,
-  lastReceived,
-  cost,
   status,
   archived = false,
+  id,
   onUnsubscribe,
   onSubscribe,
   onArchive,
-  onUnmarkImportant,
   onUnarchive
 }: SubscriptionItemProps) => {
   const getCategoryColor = () => {
-    // Use a bold blue gradient similar to the Google login button
     return 'bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold shadow-sm';
   };
 
@@ -68,12 +65,14 @@ export const SubscriptionItem = ({
           </div>
           <div className="flex items-center space-x-2">
             {archived ? (
+              <div className="flex items-center justify-end">
               <ActionButton
                 icon={Archive}
                 label="Unarchive"
                 onClick={onUnarchive}
-                className="min-w-[120px] px-4 bg-blue-500 text-white hover:bg-blue-600 border-blue-700"
+                className="min-w-[148px] px-4 bg-blue-600 text-white hover:bg-blue-700 hover:text-white border-blue-700"
               />
+              </div>
             ) : (
               <>
                 {status === 'unsubscribed' ? (
@@ -85,19 +84,22 @@ export const SubscriptionItem = ({
                     onClick={onSubscribe}
                   />
                 ) : (
-                  <ActionButton
-                    icon={X}
-                    label="Unsubscribe"
-                    variant="destructive"
-                    className="min-w-[148px] px-4 bg-red-600 text-white hover:bg-red-700 border-red-700"
-                    onClick={onUnsubscribe}
-                  />
+                  <span title={!id ? 'Unsubscribe unavailable: No messageId found for this subscription.' : ''}>
+                    <ActionButton
+                      icon={X}
+                      label="Unsubscribe"
+                      variant="destructive"
+                      className="min-w-[148px] px-4 bg-red-600 text-white hover:bg-red-700 border-red-700"
+                      onClick={id ? onUnsubscribe : undefined}
+                      disabled={!id}
+                    />
+                  </span>
                 )}
                 <ActionButton
                   icon={Archive}
                   label="Archive"
                   onClick={onArchive}
-                  className="min-w-[120px] px-4 bg-gray-500 text-white hover:bg-gray-600 border-gray-700"
+                  className="min-w-[148px] px-4 bg-white-600 text-black hover:bg-gray-400 border-blue-700"
                 />
               </>
             )}

@@ -134,9 +134,7 @@ const DashboardLayout = () => {
                 🔔
               </Button>
               <Button
-                variant="outline"
-                size="sm"
-                className="bg-gradient-to-r from-purple-500 to-blue-500 text-white font-bold"
+                className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 glow-purple hover-scale transition-all duration-300 font-bold text-white hover:text-white"
                 onClick={async () => {
                   await fetch("http://localhost:4000/auth/logout", {
                     method: "POST",
@@ -144,6 +142,8 @@ const DashboardLayout = () => {
                   });
                   window.location.href = "/";
                 }}
+                variant="outline"
+                size="sm"
               >
                 Log out
               </Button>
