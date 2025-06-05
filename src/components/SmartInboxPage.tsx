@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -61,8 +60,8 @@ const SmartInboxPage = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Smart Inbox</h1>
-          <p className="text-gray-600">AI-powered email organization and management</p>
+          <h1 className="text-2xl font-bold text-foreground">Smart Inbox</h1>
+          <p className="text-muted-foreground">AI-powered email organization and management</p>
         </div>
         <div className="flex space-x-2">
           <ActionButton
@@ -84,7 +83,7 @@ const SmartInboxPage = () => {
       </div>
 
       {/* AI Insights */}
-      <Card>
+      <Card className="bg-card text-card-foreground">
         <CardHeader>
           <CardTitle className="flex items-center">
             <Zap className="h-5 w-5 mr-2 text-blue-500" />
@@ -92,9 +91,9 @@ const SmartInboxPage = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <h4 className="font-medium text-blue-900 mb-2">Daily Summary</h4>
-            <p className="text-blue-800 text-sm mb-3">
+          <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-lg p-4">
+            <h4 className="font-medium text-blue-900 dark:text-blue-200 mb-2">Daily Summary</h4>
+            <p className="text-blue-800 dark:text-blue-100 text-sm mb-3">
               You received 23 new emails today. 12 are primary, 8 are social updates, and 3 require immediate attention.
             </p>
             <div className="flex space-x-2">
@@ -111,16 +110,15 @@ const SmartInboxPage = () => {
       </Card>
 
       {/* Filters and Search */}
-      <Card>
+      <Card className="bg-card text-card-foreground">
         <CardContent className="pt-6 space-y-4">
           <FilterTabs
             tabs={tabs}
             defaultValue="primary"
             onValueChange={setActiveTab}
           />
-          
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
             <Input
               placeholder="Search emails..."
               value={searchTerm}
@@ -146,9 +144,9 @@ const SmartInboxPage = () => {
             />
           ))
         ) : (
-          <Card>
+          <Card className="bg-card text-card-foreground">
             <CardContent className="text-center py-12">
-              <p className="text-gray-500">No emails found in this category.</p>
+              <p className="text-muted-foreground">No emails found in this category.</p>
             </CardContent>
           </Card>
         )}

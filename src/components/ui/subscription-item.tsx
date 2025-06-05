@@ -45,12 +45,12 @@ export const SubscriptionItem = ({
   };
 
   return (
-    <Card className="hover:shadow-md transition-shadow">
+    <Card className="hover:shadow-md transition-shadow bg-card text-card-foreground">
       <CardContent className="p-4">
         <div className="flex items-center justify-between">
           <div className="flex-1">
             <div className="flex items-center space-x-2 mb-2">
-              <h3 className="font-medium text-gray-900">{name}</h3>
+              <h3 className="font-medium text-foreground">{name}</h3>
               <Badge className={getCategoryColor()}>
                 {category}
               </Badge>
@@ -58,10 +58,10 @@ export const SubscriptionItem = ({
                 {status}
               </Badge>
               {archived && (
-                <Badge className="bg-gray-400 text-white font-semibold">Archived</Badge>
+                <Badge className="bg-muted text-muted-foreground font-semibold">Archived</Badge>
               )}
             </div>
-            <p className="text-sm text-gray-600 mb-1">{email}</p>
+            <p className="text-sm text-muted-foreground mb-1">{email}</p>
           </div>
           <div className="flex items-center space-x-2">
             {archived ? (

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -81,8 +80,8 @@ const RulesPage = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Email Rules</h1>
-          <p className="text-gray-600 dark:text-gray-300">Create IF-THEN rules to automatically organize your emails</p>
+          <h1 className="text-2xl font-bold text-foreground">Email Rules</h1>
+          <p className="text-muted-foreground">Create IF-THEN rules to automatically organize your emails</p>
         </div>
         <Button>
           <Plus className="w-4 h-4 mr-2" />
@@ -92,46 +91,46 @@ const RulesPage = () => {
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
+        <Card className="bg-card text-card-foreground">
           <CardContent className="p-4">
             <div className="flex items-center space-x-2">
               <Filter className="w-5 h-5 text-blue-600" />
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Active Rules</p>
-                <p className="text-2xl font-bold">{rules.filter(r => r.isEnabled).length}</p>
+                <p className="text-sm text-muted-foreground">Active Rules</p>
+                <p className="text-2xl font-bold text-foreground">{rules.filter(r => r.isEnabled).length}</p>
               </div>
             </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="bg-card text-card-foreground">
           <CardContent className="p-4">
             <div className="flex items-center space-x-2">
               <ArrowRight className="w-5 h-5 text-green-600" />
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Runs This Week</p>
-                <p className="text-2xl font-bold">{rules.reduce((sum, r) => sum + r.runsThisWeek, 0)}</p>
+                <p className="text-sm text-muted-foreground">Runs This Week</p>
+                <p className="text-2xl font-bold text-foreground">{rules.reduce((sum, r) => sum + r.runsThisWeek, 0)}</p>
               </div>
             </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="bg-card text-card-foreground">
           <CardContent className="p-4">
             <div className="flex items-center space-x-2">
               <Calendar className="w-5 h-5 text-purple-600" />
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Scheduled</p>
-                <p className="text-2xl font-bold">{rules.filter(r => r.schedule !== 'Immediately').length}</p>
+                <p className="text-sm text-muted-foreground">Scheduled</p>
+                <p className="text-2xl font-bold text-foreground">{rules.filter(r => r.schedule !== 'Immediately').length}</p>
               </div>
             </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="bg-card text-card-foreground">
           <CardContent className="p-4">
             <div className="flex items-center space-x-2">
               <Settings className="w-5 h-5 text-orange-600" />
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Time Saved</p>
-                <p className="text-2xl font-bold">3.5h</p>
+                <p className="text-sm text-muted-foreground">Time Saved</p>
+                <p className="text-2xl font-bold text-foreground">3.5h</p>
               </div>
             </div>
           </CardContent>
@@ -141,7 +140,7 @@ const RulesPage = () => {
       {/* Rules List */}
       <div className="space-y-4">
         {rules.map((rule) => (
-          <Card key={rule.id} className="hover:shadow-md transition-shadow">
+          <Card key={rule.id} className="hover:shadow-md transition-shadow bg-card text-card-foreground">
             <CardContent className="p-6">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
@@ -149,40 +148,38 @@ const RulesPage = () => {
                     <Switch
                       checked={rule.isEnabled}
                       onCheckedChange={() => toggleRule(rule.id)}
+                      className="data-[state=checked]:bg-primary data-[state=unchecked]:bg-muted"
                     />
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    <h3 className="text-lg font-semibold text-foreground">
                       {rule.name}
                     </h3>
-                    <Badge variant={rule.isEnabled ? "default" : "secondary"} size="sm">
-                      {rule.isEnabled ? "Active" : "Disabled"}
+                    <Badge variant={rule.isEnabled ? 'default' : 'secondary'} size="sm">
+                      {rule.isEnabled ? 'Active' : 'Disabled'}
                     </Badge>
                   </div>
-                  
-                  <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 mb-4">
+                  <div className="bg-muted rounded-lg p-4 mb-4">
                     <div className="flex items-center space-x-4 text-sm">
                       <div className="flex items-center space-x-2">
                         <span className="font-medium text-blue-600 dark:text-blue-400">IF</span>
-                        <span className="bg-white dark:bg-gray-700 px-3 py-1 rounded border">
+                        <span className="bg-background px-3 py-1 rounded border border-border">
                           {rule.condition}
                         </span>
                       </div>
-                      <ArrowRight className="w-4 h-4 text-gray-400" />
+                      <ArrowRight className="w-4 h-4 text-muted-foreground" />
                       <div className="flex items-center space-x-2">
                         <span className="font-medium text-green-600 dark:text-green-400">THEN</span>
-                        <span className="bg-white dark:bg-gray-700 px-3 py-1 rounded border">
+                        <span className="bg-background px-3 py-1 rounded border border-border">
                           {rule.action}
                         </span>
                       </div>
                     </div>
                   </div>
-
-                  <div className="flex items-center space-x-6 text-xs text-gray-500">
+                  <div className="flex items-center space-x-6 text-xs text-muted-foreground">
                     <span>Schedule: {rule.schedule}</span>
                     <span>Runs this week: {rule.runsThisWeek}</span>
                     <span>Last triggered: {rule.lastTriggered}</span>
                   </div>
                 </div>
-
                 <div className="flex items-center space-x-2 ml-4">
                   <Button variant="ghost" size="sm">
                     <Settings className="w-4 h-4" />

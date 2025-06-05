@@ -218,8 +218,8 @@ const SubscriptionsPage = () => {
       {/* Header */}
       <div className="flex items-center justify-between px-6 pt-6 pb-2 shrink-0">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Subscriptions</h1>
-          <p className="text-gray-600">Manage all your email subscriptions in one place</p>
+          <h1 className="text-2xl font-bold text-foreground">Subscriptions</h1>
+          <p className="text-muted-foreground">Manage all your email subscriptions in one place</p>
         </div>
         <div className="flex space-x-2">
           <Button variant="outline" size="sm" onClick={handleExportPDF}>
@@ -231,7 +231,7 @@ const SubscriptionsPage = () => {
 
       {/* Filters and Search */}
       <div className="px-6 pb-4 shrink-0">
-        <Card>
+        <Card className="bg-card text-card-foreground">
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle>Filter Subscriptions</CardTitle>
@@ -249,11 +249,11 @@ const SubscriptionsPage = () => {
                 tabs={tabs}
                 defaultValue="all"
                 onValueChange={setActiveTab}
-                className="rounded-lg border bg-white dark:bg-gray-800 p-1 flex gap-2 shadow-sm w-full flex-nowrap justify-center"
+                className="rounded-lg border bg-background p-1 flex gap-2 shadow-sm w-full flex-nowrap justify-center"
               />
             </div>
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
               <Input
                 placeholder="Search subscriptions..."
                 value={searchTerm}
@@ -268,7 +268,7 @@ const SubscriptionsPage = () => {
       {/* Subscriptions List */}
       <div className="flex-1 min-h-0 max-h-full overflow-y-auto px-6 pb-6">
         {(loading || scanning || !subscriptionsReady) ? (
-          <div className="text-center py-12 text-gray-500">Processing, validating, and computing your subscriptions...</div>
+          <div className="text-center py-12 text-muted-foreground">Processing, validating, and computing your subscriptions...</div>
         ) : error ? (
           <div className="text-center py-12 text-red-500">{error}</div>
         ) : (filteredSubscriptions.length > 0 ? (
@@ -365,9 +365,9 @@ const SubscriptionsPage = () => {
             />
           ))
         ) : (
-          <Card>
+          <Card className="bg-card text-card-foreground">
             <CardContent className="text-center py-12">
-              <p className="text-gray-500">No subscriptions found matching your criteria.</p>
+              <p className="text-muted-foreground">No subscriptions found matching your criteria.</p>
             </CardContent>
           </Card>
         ))}

@@ -1,4 +1,3 @@
-
 import { StatsCard } from "@/components/ui/stats-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -58,15 +57,15 @@ const Dashboard = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-gray-600">Welcome back! Here's your email overview.</p>
+          <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
+          <p className="text-muted-foreground">Welcome back! Here's your email overview.</p>
         </div>
         <div className="flex space-x-2">
           <Button variant="outline" size="sm">
             <BarChart3 className="h-4 w-4 mr-2" />
             Export Report
           </Button>
-          <Button size="sm">
+          <Button size="sm" variant="secondary">
             <Bell className="h-4 w-4 mr-2" />
             Set Alert
           </Button>
@@ -90,35 +89,33 @@ const Dashboard = () => {
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Subscription Overview */}
-        <Card className="lg:col-span-2">
+        <Card className="lg:col-span-2 bg-card text-card-foreground">
           <CardHeader>
             <CardTitle>Subscription Categories</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Free Subscriptions</span>
-                <span className="text-sm text-gray-600">156 (63%)</span>
+                <span className="text-sm font-medium text-foreground">Free Subscriptions</span>
+                <span className="text-sm text-muted-foreground">156 (63%)</span>
               </div>
-              <Progress value={63} className="h-2" />
-              
+              <Progress value={63} className="h-2 bg-muted [&_.bg-primary]:bg-primary dark:[&_.bg-primary]:bg-primary" />
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Paid Subscriptions</span>
-                <span className="text-sm text-gray-600">67 (27%)</span>
+                <span className="text-sm font-medium text-foreground">Paid Subscriptions</span>
+                <span className="text-sm text-muted-foreground">67 (27%)</span>
               </div>
-              <Progress value={27} className="h-2" />
-              
+              <Progress value={27} className="h-2 bg-muted [&_.bg-primary]:bg-primary dark:[&_.bg-primary]:bg-primary" />
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Promotional Only</span>
-                <span className="text-sm text-gray-600">25 (10%)</span>
+                <span className="text-sm font-medium text-foreground">Promotional Only</span>
+                <span className="text-sm text-muted-foreground">25 (10%)</span>
               </div>
-              <Progress value={10} className="h-2" />
+              <Progress value={10} className="h-2 bg-muted [&_.bg-primary]:bg-primary dark:[&_.bg-primary]:bg-primary" />
             </div>
           </CardContent>
         </Card>
 
         {/* Recent Activity */}
-        <Card>
+        <Card className="bg-card text-card-foreground">
           <CardHeader>
             <CardTitle>Recent Activity</CardTitle>
           </CardHeader>
@@ -128,10 +125,10 @@ const Dashboard = () => {
                 <div key={index} className="flex items-start space-x-3">
                   <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900 truncate">
+                    <p className="text-sm font-medium text-foreground truncate">
                       {activity.action}
                     </p>
-                    <p className="text-xs text-gray-500">{activity.time}</p>
+                    <p className="text-xs text-muted-foreground">{activity.time}</p>
                   </div>
                 </div>
               ))}
@@ -141,21 +138,21 @@ const Dashboard = () => {
       </div>
 
       {/* Quick Actions */}
-      <Card>
+      <Card className="bg-card text-card-foreground">
         <CardHeader>
           <CardTitle>Quick Actions</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Button className="h-20 flex flex-col items-center justify-center space-y-2">
+            <Button className="h-20 flex flex-col items-center justify-center space-y-2 bg-primary text-primary-foreground hover:bg-primary/90">
               <Mail className="h-6 w-6" />
               <span>Scan New Emails</span>
             </Button>
-            <Button variant="outline" className="h-20 flex flex-col items-center justify-center space-y-2">
+            <Button variant="outline" className="h-20 flex flex-col items-center justify-center space-y-2 border-muted text-foreground hover:bg-muted/50">
               <Zap className="h-6 w-6" />
               <span>AI Summary</span>
             </Button>
-            <Button variant="outline" className="h-20 flex flex-col items-center justify-center space-y-2">
+            <Button variant="outline" className="h-20 flex flex-col items-center justify-center space-y-2 border-muted text-foreground hover:bg-muted/50">
               <Calendar className="h-6 w-6" />
               <span>Schedule Reminder</span>
             </Button>
