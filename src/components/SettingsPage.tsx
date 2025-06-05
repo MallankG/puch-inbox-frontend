@@ -1,6 +1,4 @@
-import { useEffect } from "react";
 import { useSettings } from "@/hooks/useSettings";
-import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -33,34 +31,66 @@ const SettingsPage = () => {
       aiImprovement: false,
     }
   };
-  const [localSettings, setLocalSettings] = useState(settings ?? defaultSettings);
+  const currentSettings = settings ?? defaultSettings;
 
-  // Replace local state with backend state
-  useEffect(() => {
-    if (settings) setLocalSettings(settings);
-  }, [settings]);
+  if (loading) {
+    return <div className="flex items-center justify-center min-h-[40vh] text-muted-foreground text-lg">Loading settings...</div>;
+  }
 
-  const updateSetting = (category: keyof typeof defaultSettings, key: string, value: any) => {
-    const updated = {
-      ...localSettings,
-      [category]: {
-        ...localSettings[category],
-        [key]: value
-      }
-    };
-    setLocalSettings(updated);
-    updateSettings(updated as typeof defaultSettings);
+  if (error) {
+    return <div className="flex items-center justify-center min-h-[40vh] text-red-500 text-lg">Error loading settings: {typeof error === 'string' ? error : (error && 'message' in error ? error.message : 'Unknown error')}</div>;
+  }
+
+  const updateSetting = async <K extends keyof typeof defaultSettings>(
+    category: K,
+    key: keyof typeof defaultSettings[K],
+    value: typeof defaultSettings[K][keyof typeof defaultSettings[K]]
+  ) => {
+    try {
+      await updateSettings({
+        ...currentSettings,
+        [category]: {
+          ...currentSettings[category],
+          [key]: value
+
+        }
+      } as typeof defaultSettings);
+    } catch (err) {
+      toast({
+        title: "Update failed",
+        description: err instanceof Error ? err.message : "Could not update settings.",
+        variant: "destructive",
+        duration: 4000
+      });
+    }
   };
 
-  const handleResetSettings = () => {
-    setLocalSettings(defaultSettings);
-    updateSettings(defaultSettings);
-    toast({
-      title: "Settings reset",
-      description: "All settings have been restored to their default values.",
-      variant: "default",
-      duration: 4000
-    });
+  const handleResetSettings = async () => {
+    // Preserve the current theme
+    const themeToPreserve = currentSettings.preferences.theme;
+    const resetSettings = {
+      ...defaultSettings,
+      preferences: {
+        ...defaultSettings.preferences,
+        theme: themeToPreserve
+      }
+    };
+    try {
+      await updateSettings(resetSettings);
+      toast({
+        title: "Settings reset",
+        description: "All settings have been restored to their default values (except theme).",
+        variant: "default",
+        duration: 4000
+      });
+    } catch (error) {
+      toast({
+        title: "Reset failed",
+        description: "Failed to reset settings. Please try again.",
+        variant: "destructive",
+        duration: 4000
+      });
+    }
   };
 
   return (
@@ -94,8 +124,8 @@ const SettingsPage = () => {
                 <div className="space-y-2">
                   <Label htmlFor="replyTone">Smart Reply Tone</Label>
                   <Select 
-                    value={localSettings.preferences.smartReplyTone} 
-                    onValueChange={(value) => updateSetting('preferences', 'smartReplyTone', value)}
+                    value={currentSettings.preferences.smartReplyTone} 
+                    onValueChange={(value) => updateSetting('preferences', 'smartReplyTone', value as typeof defaultSettings.preferences.smartReplyTone)}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -112,8 +142,8 @@ const SettingsPage = () => {
                 <div className="space-y-2">
                   <Label htmlFor="defaultView">Default Inbox View</Label>
                   <Select 
-                    value={localSettings.preferences.defaultView} 
-                    onValueChange={(value) => updateSetting('preferences', 'defaultView', value)}
+                    value={currentSettings.preferences.defaultView} 
+                    onValueChange={(value) => updateSetting('preferences', 'defaultView', value as typeof defaultSettings.preferences.defaultView)}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -134,7 +164,7 @@ const SettingsPage = () => {
                 </div>
                 <Switch
                   id="autoArchive"
-                  checked={localSettings.preferences.autoArchive}
+                  checked={currentSettings.preferences.autoArchive}
                   onCheckedChange={(checked) => updateSetting('preferences', 'autoArchive', checked)}
                   className="data-[state=checked]:bg-primary data-[state=unchecked]:bg-muted"
                 />
@@ -153,8 +183,8 @@ const SettingsPage = () => {
               <div className="space-y-2">
                 <Label htmlFor="theme">Theme</Label>
                 <Select 
-                  value={localSettings.preferences.theme} 
-                  onValueChange={(value) => updateSetting('preferences', 'theme', value)}
+                  value={currentSettings.preferences.theme} 
+                  onValueChange={(value) => updateSetting('preferences', 'theme', value as typeof defaultSettings.preferences.theme)}
                 >
                   <SelectTrigger className="w-full md:w-48">
                     <SelectValue />
@@ -202,7 +232,7 @@ const SettingsPage = () => {
                 </div>
                 <Switch
                   id="emailAlerts"
-                  checked={localSettings.notifications.emailAlerts}
+                  checked={currentSettings.notifications.emailAlerts}
                   onCheckedChange={(checked) => updateSetting('notifications', 'emailAlerts', checked)}
                   className="data-[state=checked]:bg-primary data-[state=unchecked]:bg-muted"
                 />
@@ -215,7 +245,7 @@ const SettingsPage = () => {
                 </div>
                 <Switch
                   id="smsAlerts"
-                  checked={localSettings.notifications.smsAlerts}
+                  checked={currentSettings.notifications.smsAlerts}
                   onCheckedChange={(checked) => updateSetting('notifications', 'smsAlerts', checked)}
                   className="data-[state=checked]:bg-primary data-[state=unchecked]:bg-muted"
                 />
@@ -228,7 +258,7 @@ const SettingsPage = () => {
                 </div>
                 <Switch
                   id="pushNotifications"
-                  checked={localSettings.notifications.pushNotifications}
+                  checked={currentSettings.notifications.pushNotifications}
                   onCheckedChange={(checked) => updateSetting('notifications', 'pushNotifications', checked)}
                   className="data-[state=checked]:bg-primary data-[state=unchecked]:bg-muted"
                 />
@@ -241,7 +271,7 @@ const SettingsPage = () => {
                 </div>
                 <Switch
                   id="weeklyDigest"
-                  checked={localSettings.notifications.weeklyDigest}
+                  checked={currentSettings.notifications.weeklyDigest}
                   onCheckedChange={(checked) => updateSetting('notifications', 'weeklyDigest', checked)}
                   className="data-[state=checked]:bg-primary data-[state=unchecked]:bg-muted"
                 />
@@ -267,7 +297,7 @@ const SettingsPage = () => {
                 </div>
                 <Switch
                   id="dataSharing"
-                  checked={localSettings.privacy.dataSharing}
+                  checked={currentSettings.privacy.dataSharing}
                   onCheckedChange={(checked) => updateSetting('privacy', 'dataSharing', checked)}
                   className="data-[state=checked]:bg-primary data-[state=unchecked]:bg-muted"
                 />
@@ -280,7 +310,7 @@ const SettingsPage = () => {
                 </div>
                 <Switch
                   id="analytics"
-                  checked={localSettings.privacy.analytics}
+                  checked={currentSettings.privacy.analytics}
                   onCheckedChange={(checked) => updateSetting('privacy', 'analytics', checked)}
                   className="data-[state=checked]:bg-primary data-[state=unchecked]:bg-muted"
                 />
@@ -293,7 +323,7 @@ const SettingsPage = () => {
                 </div>
                 <Switch
                   id="aiImprovement"
-                  checked={localSettings.privacy.aiImprovement}
+                  checked={currentSettings.privacy.aiImprovement}
                   onCheckedChange={(checked) => updateSetting('privacy', 'aiImprovement', checked)}
                   className="data-[state=checked]:bg-primary data-[state=unchecked]:bg-muted"
                 />

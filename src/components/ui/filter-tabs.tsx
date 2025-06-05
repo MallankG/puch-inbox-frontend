@@ -14,11 +14,11 @@ interface FilterTabsProps {
 }
 
 export const FilterTabs = ({ tabs, defaultValue, onValueChange, className }: FilterTabsProps) => {
-  const tabCount = tabs.length;
-  const gridClass = `grid grid-cols-${tabCount}`;
-  return (
-    <Tabs defaultValue={defaultValue} onValueChange={onValueChange} className={className}>
-      <TabsList className={`w-full justify-center items-center ${gridClass}`}>
+  const gridStyle = { gridTemplateColumns: `repeat(${tabs.length}, 1fr)` };
+
+   return (
+     <Tabs defaultValue={defaultValue} onValueChange={onValueChange} className={className}>
+      <TabsList className="w-full justify-center items-center grid" style={gridStyle}>
         {tabs.map((tab) => (
           <TabsTrigger key={tab.value} value={tab.value} className="flex items-center justify-center space-x-2 text-muted-foreground data-[state=active]:text-foreground">
             <span>{tab.label}</span>
