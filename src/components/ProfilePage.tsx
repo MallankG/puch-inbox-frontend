@@ -8,9 +8,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, Edit2, Mail, Phone, MapPin, Calendar, Shield, Bell } from "lucide-react";
 import { useProfile } from "@/hooks/useProfile";
 import { useEffect, useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 const ProfilePage = () => {
   const { profile, loading, error, updateProfile } = useProfile();
+  const { toast } = useToast();
   const [editMode, setEditMode] = useState(false);
   const [form, setForm] = useState({
     name: profile?.name || "",
@@ -28,7 +30,9 @@ const ProfilePage = () => {
   });
   const [otpSent, setOtpSent] = useState(false);
   const [otpError, setOtpError] = useState("");
+  const [otpSuccess, setOtpSuccess] = useState("");
   const [phoneVerified, setPhoneVerified] = useState(profile?.phoneVerified || false);
+  const [countryCode, setCountryCode] = useState("+91");
 
   // Update form and phoneVerified when profile loads
   useEffect(() => {
@@ -44,6 +48,20 @@ const ProfilePage = () => {
     }
   }, [profile]);
 
+  // Hide OTP error/success after 5 seconds
+  useEffect(() => {
+    if (otpError) {
+      const timer = setTimeout(() => setOtpError(""), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [otpError]);
+  useEffect(() => {
+    if (otpSuccess) {
+      const timer = setTimeout(() => setOtpSuccess(""), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [otpSuccess]);
+
   const handleChange = (e: any) => {
     const { id, value, type, checked } = e.target;
     if (id in form.preferences) {
@@ -55,10 +73,12 @@ const ProfilePage = () => {
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
+    // Always save phone in E.164 format (country code + phone)
+    const fullPhone = `${countryCode}${form.phone}`;
     await updateProfile({
       name: form.name,
       email: form.email,
-      phone: form.phone,
+      phone: fullPhone,
       preferences: form.preferences,
       phoneVerified: phoneVerified // Always include phoneVerified
     });
@@ -73,26 +93,31 @@ const ProfilePage = () => {
     }));
     setOtpSent(false);
     setOtpError("");
-    setPhoneVerified(!!profile?.phone && profile?.phone.length > 0);
+    setOtpSuccess("");
+    setPhoneVerified(!!profile?.phoneVerified);
   };
 
   const handleSendOtp = async () => {
     setOtpError("");
-    console.log('[handleSendOtp] Called with phone:', form.phone);
-    if (!form.phone || form.phone.length < 8) {
-      setOtpError("Enter a valid phone number.");
+    setOtpSuccess("");
+    // Only allow 10 digit phone numbers (excluding country code)
+    if (!form.phone || !/^\d{10}$/.test(form.phone)) {
+      setOtpError("Please enter a 10-digit phone number (excluding country code).");
       return;
     }
+    const fullPhone = `${countryCode}${form.phone}`;
+    console.log('[handleSendOtp] Called with phone:', fullPhone);
     try {
       const res = await fetch("http://localhost:4000/api/profile/send-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ phone: form.phone })
+        body: JSON.stringify({ phone: fullPhone })
       });
       console.log('[handleSendOtp] Response status:', res.status);
       if (!res.ok) throw new Error("Failed to send OTP");
       setOtpSent(true);
+      setOtpSuccess("OTP sent successfully!");
     } catch (e: any) {
       console.error('[handleSendOtp] Error:', e);
       setOtpError(e.message || "Failed to send OTP");
@@ -101,18 +126,20 @@ const ProfilePage = () => {
 
   const handleVerifyOtp = async () => {
     setOtpError("");
+    setOtpSuccess("");
+    const fullPhone = `${countryCode}${form.phone}`;
     try {
       const res = await fetch("http://localhost:4000/api/profile/verify-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ phone: form.phone, otp: form.otp })
+        body: JSON.stringify({ phone: fullPhone, otp: form.otp, email: form.email })
       });
       if (!res.ok) throw new Error("Invalid OTP. Please try again.");
       setPhoneVerified(true);
       setOtpSent(false);
       setForm((f) => ({ ...f, otp: "" }));
-      // Automatically save after successful verification
+      // Save phone and phoneVerified to backend after successful verification
       await updateProfile({
         name: form.name,
         email: form.email,
@@ -121,6 +148,12 @@ const ProfilePage = () => {
         phoneVerified: true
       });
       setEditMode(false);
+      toast({
+        title: "Successfully verified",
+        description: "Your phone number has been verified.",
+        duration: 5000,
+        variant: "default"
+      });
     } catch (e: any) {
       setOtpError(e.message || "Invalid OTP. Please try again.");
     }
@@ -175,14 +208,47 @@ const ProfilePage = () => {
                   <div>
                     <Label htmlFor="phone">Phone</Label>
                     <div className="flex gap-2 items-center">
-                      <Input type="tel" id="phone" value={form.phone} onChange={handleChange} disabled={phoneVerified} />
+                      <select
+                        value={countryCode}
+                        onChange={e => setCountryCode(e.target.value)}
+                        className="border rounded px-2 py-1 text-sm"
+                        style={{ width: 70 }}
+                        disabled={phoneVerified}
+                      >
+                        <option value="+91">+91</option>
+                        {/* <option value="+1">+1</option>
+                        <option value="+44">+44</option>
+                        <option value="+61">+61</option>
+                        <option value="+81">+81</option> */}
+                        {/* Add more country codes as needed */}
+                      </select>
+                      <Input type="tel" id="phone" value={form.phone} onChange={handleChange} disabled={phoneVerified} placeholder="Phone number" />
                       {!phoneVerified && (
-                        <Button type="button" size="sm" onClick={handleSendOtp} disabled={otpSent}>Send OTP</Button>
+                        <Button
+                          type="button"
+                          size="sm"
+                          onClick={handleSendOtp}
+                          disabled={otpSent || !/^\d{10}$/.test(form.phone)}
+                        >
+                          Send OTP
+                        </Button>
                       )}
                       {phoneVerified && (
                         <Badge className="bg-green-500 text-white ml-2">Verified</Badge>
                       )}
                     </div>
+                    {/* Always show error if phone is not 10 digits and user has typed something */}
+                    {!phoneVerified && form.phone && !/^\d{10}$/.test(form.phone) && (
+                      <div className="text-red-500 text-xs mt-1">Please enter a 10-digit phone number (excluding country code).</div>
+                    )}
+                    {/* Show backend/OTP error if present */}
+                    {!phoneVerified && otpError && /^\d{10}$/.test(form.phone) && (
+                      <div className="text-red-500 text-xs mt-1">{otpError}</div>
+                    )}
+                    {/* Show success message when OTP is sent */}
+                    {!phoneVerified && otpSuccess && (
+                      <div className="text-green-600 text-xs mt-1">{otpSuccess}</div>
+                    )}
                   </div>
                   {otpSent && !phoneVerified && (
                     <div>
@@ -215,6 +281,7 @@ const ProfilePage = () => {
                     });
                     setOtpSent(false);
                     setOtpError("");
+                    setOtpSuccess("");
                     setPhoneVerified(!!profile?.phoneVerified);
                   }}>Cancel</Button>
                 </div>
