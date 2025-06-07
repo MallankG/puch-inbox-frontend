@@ -150,6 +150,8 @@ const SmartInboxPage = () => {
 
   // Add state to track last generated email hash
   const [lastEmailHash, setLastEmailHash] = useState<string>("");
+  const initialHashSet = useRef(false); // Track if initial hash has been set for this session
+  const [lastDeletedId, setLastDeletedId] = useState<string | null>(null); // Restore lastDeletedId state
 
   // Helper to hash emails for change detection
   function hashEmails(emailArr: any[]): string {
@@ -157,15 +159,17 @@ const SmartInboxPage = () => {
     return emailArr.map(e => `${e.id}:${e.date || e.time}`).join("|");
   }
 
-  // Effect: generate summary when emails change, but only if not cached (i.e., after fresh fetch)
-  // Prevent summary regeneration on delete by tracking deletes
-  const [lastDeletedId, setLastDeletedId] = useState<string | null>(null);
+  // Effect: set lastEmailHash only once per session, and only generate summary if emails actually change
   useEffect(() => {
-    if (loading || scanning || isCached) return; // Only generate when fresh emails are loaded
-    // If the last change was a delete, skip summary regeneration
-    if (lastDeletedId) return;
     const last24hEmails = getLast24hEmails();
     const newHash = hashEmails(last24hEmails);
+    if (!initialHashSet.current) {
+      setLastEmailHash(newHash);
+      initialHashSet.current = true;
+      return;
+    }
+    if (loading || scanning || isCached) return;
+    if (lastDeletedId) return;
     if (newHash && newHash !== lastEmailHash) {
       setLastEmailHash(newHash);
       handleGenerateSummary();

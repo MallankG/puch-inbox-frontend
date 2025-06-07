@@ -7,7 +7,6 @@ import Dashboard from "./Dashboard";
 import SubscriptionsPage from "./SubscriptionsPage";
 import SmartInboxPage from "./SmartInboxPage";
 import AutomationPage from "./AutomationPage";
-import RulesPage from "./RulesPage";
 import ProfilePage from "./ProfilePage";
 import SettingsPage from "./SettingsPage";
 
@@ -23,7 +22,6 @@ const DashboardLayout = () => {
     { id: 'subscriptions', label: 'Subscriptions', icon: '📧' },
     { id: 'inbox', label: 'Smart Inbox', icon: '📥' },
     { id: 'automation', label: 'Automation', icon: '🤖' },
-    { id: 'rules', label: 'Rules', icon: '⚙️' },
     { id: 'profile', label: 'Profile', icon: '👤' },
     { id: 'settings', label: 'Settings', icon: '🔧' },
   ];
@@ -54,8 +52,6 @@ const DashboardLayout = () => {
         return <SmartInboxPage />;
       case 'automation':
         return <AutomationPage />;
-      case 'rules':
-        return <RulesPage />;
       case 'profile':
         return <ProfilePage />;
       case 'settings':
