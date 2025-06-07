@@ -38,7 +38,13 @@ const SettingsPage = () => {
   }
 
   if (error) {
-    return <div className="flex items-center justify-center min-h-[40vh] text-red-500 text-lg">Error loading settings: {typeof error === 'string' ? error : (error && 'message' in error ? error.message : 'Unknown error')}</div>;
+    let errorMsg = 'Unknown error';
+    if (typeof error === 'string') {
+      errorMsg = error;
+    } else if (error && typeof error === 'object' && 'message' in error && typeof (error as any).message === 'string') {
+      errorMsg = (error as any).message;
+    }
+    return <div className="flex items-center justify-center min-h-[40vh] text-red-500 text-lg">Error loading settings: {errorMsg}</div>;
   }
 
   const updateSetting = async <K extends keyof typeof defaultSettings>(

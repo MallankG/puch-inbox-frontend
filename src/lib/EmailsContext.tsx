@@ -9,6 +9,7 @@ interface EmailsContextType {
   error: string | null;
   refresh: () => Promise<void>;
   forceScan: () => Promise<void>;
+  scanning: boolean;
 }
 
 const EmailsContext = createContext<EmailsContextType | undefined>(undefined);
@@ -17,11 +18,53 @@ export const EmailsProvider = ({ children }: { children: ReactNode }) => {
   const [emails, setEmails] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [scanning, setScanning] = useState(false);
 
-  // Fetch emails only once when the user logs in (provider mounts)
+  // On mount: show cached emails instantly, then update with fresh emails in background
   useEffect(() => {
-    fetchAndSet();
-    // Only run on mount
+    let isMounted = true;
+    const fetchCachedAndUpdate = async () => {
+      setLoading(true);
+      setError(null);
+      setScanning(false);
+      try {
+        // 1. Fetch cached emails and display instantly
+        const cachedData = await fetchCachedEmails();
+        if (isMounted && cachedData.status === "done" && cachedData.cached === true) {
+          setEmails(Array.isArray(cachedData.emails) ? cachedData.emails : []);
+          setError(null);
+        } else if (isMounted && cachedData.status === "processing") {
+          setEmails([]);
+          setError("Scan is still processing. Please wait...");
+        } else if (isMounted) {
+          setEmails([]);
+          setError("No emails found.");
+        }
+      } catch (err: any) {
+        if (isMounted) {
+          setError(err?.message || "Failed to fetch emails");
+          setEmails([]);
+        }
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+
+      // 2. In the background, fetch latest emails and update when ready
+      try {
+        setScanning(true);
+        const freshData = await forceScanEmails();
+        if (isMounted && freshData.status === "done") {
+          setEmails(Array.isArray(freshData.emails) ? freshData.emails : []);
+          setError(null);
+        }
+      } catch (err: any) {
+        // Optionally, handle background fetch errors (do not clear cached emails)
+      } finally {
+        if (isMounted) setScanning(false);
+      }
+    };
+    fetchCachedAndUpdate();
+    return () => { isMounted = false; };
     // eslint-disable-next-line
   }, []);
 
@@ -90,7 +133,7 @@ export const EmailsProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <EmailsContext.Provider value={{ emails, setEmails, loading, error, refresh: fetchAndSet, forceScan: forceScanAndSet }}>
+    <EmailsContext.Provider value={{ emails, setEmails, loading, error, refresh: fetchAndSet, forceScan: forceScanAndSet, scanning }}>
       {children}
     </EmailsContext.Provider>
   );

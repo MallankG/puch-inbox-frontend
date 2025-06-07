@@ -223,7 +223,7 @@ const ProfilePage = () => {
                       <select
                         value={countryCode}
                         onChange={e => setCountryCode(e.target.value)}
-                        className="border rounded px-2 py-1 text-sm"
+                        className="border rounded px-2 py-1 text-sm bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary"
                         style={{ width: 70 }}
                         disabled={profile?.phoneVerified}
                       >
@@ -330,39 +330,6 @@ const ProfilePage = () => {
           <CardTitle>Preferences</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          <div className="space-y-1">
-            <div className="flex items-center space-x-2">
-              <Mail className="h-4 w-4 text-gray-500" />
-              <Label>Email Notifications</Label>
-              {editMode && (
-                <input type="checkbox" id="emailNotifications" checked={form.preferences.emailNotifications} onChange={handleChange} />
-              )}
-            </div>
-            <p className="text-sm text-gray-500">Receive updates and notifications via email.</p>
-          </div>
-
-          <div className="space-y-1">
-            <div className="flex items-center space-x-2">
-              <Phone className="h-4 w-4 text-gray-500" />
-              <Label>SMS Notifications</Label>
-              {editMode && (
-                <input type="checkbox" id="smsNotifications" checked={form.preferences.smsNotifications} onChange={handleChange} />
-              )}
-            </div>
-            <p className="text-sm text-gray-500">Get important alerts via SMS.</p>
-          </div>
-
-          <div className="space-y-1">
-            <div className="flex items-center space-x-2">
-              <MapPin className="h-4 w-4 text-gray-500" />
-              <Label>Location Services</Label>
-              {editMode && (
-                <input type="checkbox" id="locationServices" checked={form.preferences.locationServices} onChange={handleChange} />
-              )}
-            </div>
-            <p className="text-sm text-gray-500">Enable location-based features.</p>
-          </div>
-
           <div className="space-y-1">
             <div className="flex items-center space-x-2">
               <Calendar className="h-4 w-4 text-gray-500" />

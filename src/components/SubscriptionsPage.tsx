@@ -10,6 +10,9 @@ import { toast } from "@/hooks/use-toast";
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogFooter, AlertDialogTitle, AlertDialogDescription, AlertDialogAction, AlertDialogCancel } from "@/components/ui/alert-dialog";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { useEmails } from "../lib/EmailsContext";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription, DialogClose } from "@/components/ui/dialog";
+import { Select, SelectTrigger, SelectContent, SelectItem } from "@/components/ui/select";
 
 const SubscriptionsPage = () => {
   const [activeTab, setActiveTab] = useState("all");
@@ -29,6 +32,12 @@ const SubscriptionsPage = () => {
   const [subscriptions, setSubscriptions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showArchiveDialog, setShowArchiveDialog] = useState(false);
+  const [archiveTarget, setArchiveTarget] = useState<any>(null);
+  const [labels, setLabels] = useState<string[]>([]);
+  const [selectedLabel, setSelectedLabel] = useState<string>("PuchInboxArchived");
+  const [customLabel, setCustomLabel] = useState<string>("");
+  const { scanning: contextScanning } = useEmails();
 
   // Fetch all subscriptions from MongoDB on mount
   useEffect(() => {
@@ -96,13 +105,36 @@ const SubscriptionsPage = () => {
   };
 
   // Archive handler
-  const handleArchive = async (subscription: any) => {
+  const openArchiveDialog = (subscription: any) => {
+    setArchiveTarget(subscription);
+    setSelectedLabel("PuchInboxArchived");
+    setCustomLabel("");
+    setShowArchiveDialog(true);
+    fetchLabels();
+  };
+
+  const fetchLabels = async () => {
+    try {
+      const res = await fetch("http://localhost:4000/api/user/gmail-labels", { credentials: "include" });
+      const data = await res.json();
+      if (Array.isArray(data.labels)) {
+        setLabels(data.labels);
+      } else {
+        setLabels(["PuchInboxArchived"]);
+      }
+    } catch {
+      setLabels(["PuchInboxArchived"]);
+    }
+  };
+
+  const handleArchive = async (subscription: any, labelOverride?: string) => {
     setArchiving(subscription.email);
+    const labelToUse = labelOverride || (customLabel.trim() ? customLabel.trim() : selectedLabel);
     const res = await fetch('http://localhost:4000/api/user/emails/archive', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
-      body: JSON.stringify({ email: subscription.email })
+      body: JSON.stringify({ email: subscription.email, label: labelToUse })
     });
     if (res.ok) {
       setSubscriptions(prev => prev.map(s =>
@@ -128,6 +160,8 @@ const SubscriptionsPage = () => {
       });
     }
     setArchiving(null);
+    setShowArchiveDialog(false);
+    setArchiveTarget(null);
   };
   // Unarchive handler
   const handleUnarchive = async (subscription: any) => {
@@ -228,7 +262,9 @@ const SubscriptionsPage = () => {
           </Button>
         </div>
       </div>
-
+      {contextScanning && (
+        <div className="text-center text-blue-600 dark:text-blue-300 font-medium">Fetching latest mails...</div>
+      )}
       {/* Filters and Search */}
       <div className="px-6 pb-4 shrink-0">
         <Card className="bg-card text-card-foreground">
@@ -278,7 +314,7 @@ const SubscriptionsPage = () => {
               {...subscription}
               id={subscription.id || subscription.messageId}
               archived={subscription.archived}
-              onArchive={() => handleArchive(subscription)}
+              onArchive={() => openArchiveDialog(subscription)}
               onUnarchive={() => handleUnarchive(subscription)}
               status={(() => {
                 const key = subscription.email.toLowerCase();
@@ -378,7 +414,50 @@ const SubscriptionsPage = () => {
           <div className="text-center text-green-500 py-2">{unsubscribeSuccess}</div>
         )}
       </div>
-
+      {/* Archive Label Dialog */}
+      <Dialog open={showArchiveDialog} onOpenChange={setShowArchiveDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Archive Subscription</DialogTitle>
+            <DialogDescription>
+              Choose a label for archiving <b>{archiveTarget?.name || archiveTarget?.email}</b>.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <label className="block text-sm font-medium">Select an existing label</label>
+            <Select value={selectedLabel} onValueChange={setSelectedLabel}>
+              <SelectTrigger className="w-full">
+                {selectedLabel}
+              </SelectTrigger>
+              <SelectContent>
+                {labels.map(label => (
+                  <SelectItem key={label} value={label}>{label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <div className="flex items-center gap-2 mt-2">
+              <span className="text-xs text-muted-foreground">Or create new label:</span>
+              <Input
+                value={customLabel}
+                onChange={e => setCustomLabel(e.target.value)}
+                placeholder="New label name"
+                className="w-48"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              onClick={() => archiveTarget && handleArchive(archiveTarget)}
+              disabled={archiving === archiveTarget?.email}
+            >
+              {archiving === archiveTarget?.email ? 'Archiving...' : 'Archive'}
+            </Button>
+            <DialogClose asChild>
+              <Button variant="outline">Cancel</Button>
+            </DialogClose>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       {/* Manual Unsubscribe Alert Dialog */}
       {pendingManualUnsub && (
         <AlertDialog open onOpenChange={open => { if (!open) setPendingManualUnsub(null); }}>
@@ -407,8 +486,17 @@ const SubscriptionsPage = () => {
             <AlertDialogHeader>
               <AlertDialogTitle>Previously Unsubscribed Sender</AlertDialogTitle>
               <AlertDialogDescription>
-                You have received a new email from a sender you previously unsubscribed from.<br />
-                Would you like to mark this sender as subscribed again?
+                {(() => {
+                  const unsubEmail = unsubscribedAlerts[0];
+                  const unsubSub = mergedSubscriptions.find(s => s.email === unsubEmail);
+                  const providerName = unsubSub?.name || unsubEmail;
+                  return (
+                    <>
+                      You have received a new email from <b>{providerName}</b>, a sender you previously unsubscribed from.<br />
+                      Would you like to mark this sender as subscribed again?
+                    </>
+                  );
+                })()}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
