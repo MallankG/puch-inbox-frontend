@@ -12,7 +12,7 @@ export async function fetchAllEmails(
 ) {
   if (setLoading) setLoading(true);
   try {
-    const res = await fetch('http://localhost:4000/api/user/emails', {
+    const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/user/emails`, {
       credentials: 'include',
     });
     const data = await res.json();
@@ -32,7 +32,7 @@ export async function fetchCachedEmails(
 ) {
   if (setLoading) setLoading(true);
   try {
-    const res = await fetch('http://localhost:4000/api/user/emails/cached', {
+    const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/user/emails/cached`, {
       credentials: 'include',
     });
     const data = await res.json();
@@ -52,7 +52,7 @@ export async function forceScanEmails(
 ) {
   if (setLoading) setLoading(true);
   try {
-    const res = await fetch('http://localhost:4000/api/user/emails/scan', {
+    const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/user/emails/scan`, {
       credentials: 'include',
     });
     const data = await res.json();
@@ -67,7 +67,7 @@ export async function forceScanEmails(
 
 // Utility to unsubscribe from a provider
 export async function unsubscribeFromProvider({ email, messageId }: { email: string, messageId: string }) {
-  const res = await fetch('http://localhost:4000/api/user/unsubscribe', {
+  const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/user/unsubscribe`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

@@ -2,7 +2,7 @@
 // Utility functions to get/set the daily summary from the backend
 
 export async function fetchDailySummary(): Promise<string> {
-  const res = await fetch("http://localhost:4000/api/ai/summary", {
+  const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/ai/summary`, {
     credentials: "include",
   });
   if (!res.ok) throw new Error("Failed to fetch summary");
@@ -11,7 +11,7 @@ export async function fetchDailySummary(): Promise<string> {
 }
 
 export async function generateDailySummary(emails: any[]): Promise<string> {
-  const res = await fetch("http://localhost:4000/api/ai/summary/generate", {
+  const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/ai/summary/generate`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     credentials: "include",

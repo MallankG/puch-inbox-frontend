@@ -17,7 +17,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch("http://localhost:4000/api/user/me", { credentials: "include" })
+    fetch(`${import.meta.env.VITE_BACKEND_URL}/api/user/me`, { credentials: "include" })
       .then(res => res.json())
       .then(user => {
         if (user?.user?.id || user?.user?._id || user?.user?.email) {
@@ -32,7 +32,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     if (!userId) return;
     setLoading(true);
-    fetch(`http://localhost:4000/api/settings/${userId}`, { credentials: "include" })
+    fetch(`${import.meta.env.VITE_BACKEND_URL}/api/settings/${userId}`, { credentials: "include" })
       .then(res => res.json())
       .then(setSettings)
       .catch(() => setSettings(null))
@@ -44,7 +44,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`http://localhost:4000/api/settings/${userId}` , {
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/settings/${userId}` , {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",

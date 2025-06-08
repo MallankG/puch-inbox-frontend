@@ -11,7 +11,7 @@ const LoginPage = () => {
   const [otp, setOtp] = useState('');
 
   const handleGoogleLogin = () => {
-    window.location.href = 'http://localhost:4000/auth/login';
+    window.location.href = `${import.meta.env.VITE_BACKEND_URL}/auth/login`;
   };
 
   const handlePhoneSubmit = () => {

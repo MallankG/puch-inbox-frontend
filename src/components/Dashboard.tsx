@@ -52,7 +52,7 @@ const Dashboard = () => {
 
   // Fetch subscriptions from backend
   useEffect(() => {
-    fetch('http://localhost:4000/api/user/emails/subscriptions', { credentials: 'include' })
+    fetch(`${import.meta.env.VITE_BACKEND_URL}/api/user/emails/subscriptions`, { credentials: 'include' })
       .then(res => res.json())
       .then(data => {
         if (data.status === 'done' && Array.isArray(data.emails)) {

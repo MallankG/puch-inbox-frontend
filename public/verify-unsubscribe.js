@@ -1,7 +1,7 @@
 // Simple verification script - run this in browser console when logged into your app
 async function verifyVimeoUnsubscribe() {
   try {
-    const response = await fetch('http://localhost:4000/api/user/unsubscribe/verify', {
+    const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/user/unsubscribe/verify`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

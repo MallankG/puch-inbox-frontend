@@ -31,7 +31,7 @@ const AutomationPage = () => {
     // Fetch automations from backend on mount
     const fetchAutomations = async () => {
       try {
-        const response = await fetch('http://localhost:4000/api/automation', {
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/automation`, {
           credentials: 'include',
         });
         if (!response.ok) throw new Error('Failed to fetch automations');
@@ -62,7 +62,7 @@ const AutomationPage = () => {
     // Fetch Gmail labels for dropdown
     const fetchLabels = async () => {
       try {
-        const response = await fetch("http://localhost:4000/api/user/gmail-labels", { credentials: "include" });
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/user/gmail-labels`, { credentials: "include" });
         if (!response.ok) throw new Error("Failed to fetch labels");
         const data = await response.json();
         setGmailLabels(data.labels || []);
@@ -85,7 +85,7 @@ const AutomationPage = () => {
     const newEnabled = !currentEnabled;
     const newStatus = newEnabled ? 'active' : 'paused';
     try {
-      const response = await fetch(`http://localhost:4000/api/automation/${id}/status`, {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/automation/${id}/status`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -212,7 +212,7 @@ const AutomationPage = () => {
       return;
     }
     try {
-      const response = await fetch('http://localhost:4000/api/automation', {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/automation`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -253,7 +253,7 @@ const AutomationPage = () => {
 
   const handleDeleteAutomation = async (id: string) => {
     try {
-      const response = await fetch(`http://localhost:4000/api/automation/${id}`, {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/automation/${id}`, {
         method: 'DELETE',
         credentials: 'include',
       });
@@ -317,7 +317,7 @@ const AutomationPage = () => {
     }
     try {
       const id = editDialog.automation.id || editDialog.automation._id;
-      const response = await fetch(`http://localhost:4000/api/automation/${id}`, {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/automation/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',

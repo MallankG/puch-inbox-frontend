@@ -27,11 +27,11 @@ export function useProfile() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch("http://localhost:4000/api/user/me", { credentials: "include" })
+    fetch(`${import.meta.env.VITE_BACKEND_URL}/api/user/me`, { credentials: "include" })
       .then(res => res.json())
       .then(user => {
         if (!user?.user?.email) throw new Error("No user");
-        return fetch(`http://localhost:4000/api/profile/${user.user.email}` , { credentials: "include" });
+        return fetch(`${import.meta.env.VITE_BACKEND_URL}/api/profile/${user.user.email}` , { credentials: "include" });
       })
       .then(res => {
         if (!res.ok) throw new Error("No profile");
@@ -46,9 +46,9 @@ export function useProfile() {
     setLoading(true);
     setError(null);
     try {
-      const userRes = await fetch("http://localhost:4000/api/user/me", { credentials: "include" });
+      const userRes = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/user/me`, { credentials: "include" });
       const user = await userRes.json();
-      const res = await fetch(`http://localhost:4000/api/profile/${user.user.email}` , {
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/profile/${user.user.email}` , {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",

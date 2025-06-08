@@ -85,7 +85,7 @@ const SmartInboxPage = () => {
 
   const fetchLabels = async () => {
     try {
-      const res = await fetch("http://localhost:4000/api/user/gmail-labels", { credentials: "include" });
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/user/gmail-labels`, { credentials: "include" });
       const data = await res.json();
       if (Array.isArray(data.labels)) {
         setLabels(data.labels);
@@ -301,7 +301,7 @@ const SmartInboxPage = () => {
                 }));
                 setEmails(emails.map(e => e.id === email.id ? { ...e, labelIds: (e.labelIds || []).filter(l => l !== 'STARRED') } : e));
                 toast({ title: 'Email unstarred', description: email.subject });
-                await fetch(`http://localhost:4000/api/user/emails/unstar`, {
+                await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/user/emails/unstar`, {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   credentials: 'include',
@@ -325,7 +325,7 @@ const SmartInboxPage = () => {
                 }));
                 setEmails(emails.map(e => e.id === email.id ? { ...e, labelIds: (e.labelIds || []).filter(l => l !== archiveLabel) } : e));
                 toast({ title: 'Email unarchived', description: email.subject });
-                await fetch('http://localhost:4000/api/user/emails/unarchiveOne', {
+                await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/user/emails/unarchiveOne`, {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   credentials: 'include',
@@ -342,7 +342,7 @@ const SmartInboxPage = () => {
                 }));
                 setEmails(emails.map(e => e.id === email.id ? { ...e, labelIds: [...(e.labelIds || []), 'STARRED'] } : e));
                 toast({ title: 'Email starred', description: email.subject });
-                await fetch(`http://localhost:4000/api/user/emails/star`, {
+                await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/user/emails/star`, {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   credentials: 'include',
@@ -367,7 +367,7 @@ const SmartInboxPage = () => {
                 });
                 setLastDeletedId(email.id); // Mark this as a delete
                 try {
-                  await fetch(`http://localhost:4000/api/user/emails/delete`, {
+                  await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/user/emails/delete`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     credentials: 'include',
@@ -440,7 +440,7 @@ const SmartInboxPage = () => {
                 }));
                 setEmails(emails.map(e => e.id === archiveTarget.id ? { ...e, labelIds: [...(e.labelIds || []), labelToUse] } : e));
                 toast({ title: 'Email archived', description: archiveTarget.subject });
-                await fetch('http://localhost:4000/api/user/emails/archiveOne', {
+                await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/user/emails/archiveOne`, {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   credentials: 'include',

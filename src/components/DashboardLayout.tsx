@@ -32,7 +32,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ initialTab = 'dashboa
 
   useEffect(() => {
     // Check authentication on mount
-    fetch("http://localhost:4000/api/user/me", {
+    fetch(`${import.meta.env.VITE_BACKEND_URL}/api/user/me`, {
       credentials: "include"
     })
       .then(res => {
@@ -161,7 +161,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ initialTab = 'dashboa
                   <Button
                     className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 glow-purple hover-scale transition-all duration-300 font-bold text-white hover:text-white"
                     onClick={async () => {
-                      await fetch("http://localhost:4000/auth/logout", {
+                      await fetch(`${import.meta.env.VITE_BACKEND_URL}/auth/logout`, {
                         method: "POST",
                         credentials: "include"
                       });

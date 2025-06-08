@@ -44,7 +44,7 @@ const SubscriptionsPage = () => {
   // Fetch all subscriptions from MongoDB on mount
   useEffect(() => {
     setLoading(true);
-    fetch('http://localhost:4000/api/user/emails/subscriptions', { credentials: 'include' })
+    fetch(`${import.meta.env.VITE_BACKEND_URL}/api/user/emails/subscriptions`, { credentials: 'include' })
       .then(res => res.json())
       .then(data => {
         if (data.status === 'done' && Array.isArray(data.emails)) {
@@ -117,7 +117,7 @@ const SubscriptionsPage = () => {
     setUnsubscribeSuccess(null);
     try {
       const emailsToSend = emailsArg || emails;
-      const res = await fetch('http://localhost:4000/api/user/emails/subscriptions/scan', {
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/user/emails/subscriptions/scan`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -135,7 +135,7 @@ const SubscriptionsPage = () => {
           // Always fetch the latest subscriptions from MongoDB after scan
           try {
             setLoading(true);
-            const subsRes = await fetch('http://localhost:4000/api/user/emails/subscriptions', { credentials: 'include' });
+            const subsRes = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/user/emails/subscriptions`, { credentials: 'include' });
             const subsData = await subsRes.json();
             if (subsData.status === 'done' && Array.isArray(subsData.emails)) {
               setSubscriptions(subsData.emails);
@@ -173,7 +173,7 @@ const SubscriptionsPage = () => {
 
   const fetchLabels = async () => {
     try {
-      const res = await fetch("http://localhost:4000/api/user/gmail-labels", { credentials: "include" });
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/user/gmail-labels`, { credentials: "include" });
       const data = await res.json();
       if (Array.isArray(data.labels)) {
         setLabels(data.labels);
@@ -192,7 +192,7 @@ const SubscriptionsPage = () => {
     if (!labelToUse.startsWith("PuchInboxSub:")) {
       labelToUse = `PuchInboxSub:${labelToUse}`;
     }
-    const res = await fetch('http://localhost:4000/api/user/emails/archive', {
+    const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/user/emails/archive`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -228,7 +228,7 @@ const SubscriptionsPage = () => {
   // Unarchive handler
   const handleUnarchive = async (subscription: any) => {
     setUnarchiving(subscription.email);
-    const res = await fetch('http://localhost:4000/api/user/emails/unarchive', {
+    const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/user/emails/unarchive`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -400,7 +400,7 @@ const SubscriptionsPage = () => {
                         if (result.url) {
                           setPendingManualUnsub({ url: result.url, message: result.message });
                           // Sync with backend for manual unsubscribe
-                          await fetch('http://localhost:4000/api/user/unsubscribe', {
+                          await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/user/unsubscribe`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             credentials: 'include',
@@ -450,7 +450,7 @@ const SubscriptionsPage = () => {
               }
               onSubscribe={async () => {
                 // Sync with backend for re-subscribe
-                await fetch('http://localhost:4000/api/user/emails/mark-subscribed', {
+                await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/user/emails/mark-subscribed`, {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   credentials: 'include',
@@ -593,7 +593,7 @@ const SubscriptionsPage = () => {
               <AlertDialogAction onClick={async () => {
                 // Find the subscription object for the pendingResubscribe email
                 const resubSub = mergedSubscriptions.find(s => s.email === pendingResubscribe);
-                await fetch('http://localhost:4000/api/user/emails/mark-subscribed', {
+                await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/user/emails/mark-subscribed`, {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   credentials: 'include',

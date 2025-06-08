@@ -108,7 +108,7 @@ const ProfilePage = () => {
     const fullPhone = `${countryCode}${form.phone}`;
     console.log('[handleSendOtp] Called with phone:', fullPhone);
     try {
-      const res = await fetch("http://localhost:4000/api/profile/send-otp", {
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/profile/send-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -129,7 +129,7 @@ const ProfilePage = () => {
     setOtpSuccess("");
     const fullPhone = `${countryCode}${form.phone}`;
     try {
-      const res = await fetch("http://localhost:4000/api/profile/verify-otp", {
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/profile/verify-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
