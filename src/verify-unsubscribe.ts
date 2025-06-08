@@ -1,5 +1,5 @@
 // Simple verification script - run this in browser console when logged into your app
-async function verifyVimeoUnsubscribe() {
+export async function verifyVimeoUnsubscribe() {
   try {
     const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/user/unsubscribe/verify`, {
       method: 'POST',
@@ -37,10 +37,10 @@ async function verifyVimeoUnsubscribe() {
   }
 }
 
-// Run the verification
-console.log('🔍 Starting Vimeo unsubscribe verification...');
-verifyVimeoUnsubscribe().then(result => {
-  if (result) {
-    console.log('🎉 Verification script completed!');
-  }
-});
+// Example usage (uncomment to run in app context)
+// console.log('🔍 Starting Vimeo unsubscribe verification...');
+// verifyVimeoUnsubscribe().then(result => {
+//   if (result) {
+//     console.log('🎉 Verification script completed!');
+//   }
+// });
