@@ -36,6 +36,16 @@ const App = () => (
                 <DashboardLayout />
               </EmailsProvider>
             } />
+            <Route path="/subscriptions" element={
+              <EmailsProvider>
+                <DashboardLayout initialTab="subscriptions" />
+              </EmailsProvider>
+            } />
+            <Route path="/smart-inbox" element={
+              <EmailsProvider>
+                <DashboardLayout initialTab="inbox" />
+              </EmailsProvider>
+            } />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

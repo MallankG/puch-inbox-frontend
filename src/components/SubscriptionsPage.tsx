@@ -13,6 +13,7 @@ import autoTable from "jspdf-autotable";
 import { useEmails } from "../lib/EmailsContext";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription, DialogClose } from "@/components/ui/dialog";
 import { Select, SelectTrigger, SelectContent, SelectItem } from "@/components/ui/select";
+import { useLocation } from 'react-router-dom';
 
 const SubscriptionsPage = () => {
   const [activeTab, setActiveTab] = useState("all");
@@ -37,7 +38,8 @@ const SubscriptionsPage = () => {
   const [labels, setLabels] = useState<string[]>([]);
   const [selectedLabel, setSelectedLabel] = useState<string>("PuchInboxArchived");
   const [customLabel, setCustomLabel] = useState<string>("");
-  const { scanning: contextScanning } = useEmails();
+  const { scanning: contextScanning, emails, loading: emailsLoading } = useEmails();
+  const location = useLocation();
 
   // Fetch all subscriptions from MongoDB on mount
   useEffect(() => {
@@ -47,17 +49,33 @@ const SubscriptionsPage = () => {
       .then(data => {
         if (data.status === 'done' && Array.isArray(data.emails)) {
           setSubscriptions(data.emails);
+          setSubscriptionsReady(true); // Set ready after successful fetch
+          setLoading(false);
         } else {
           setError(data.error || 'Failed to load subscriptions');
+          setLoading(false);
         }
-        setLoading(false);
-        setSubscriptionsReady(true);
       })
       .catch(err => {
         setError('Failed to load subscriptions');
         setLoading(false);
       });
   }, []);
+
+  // On mount, check if we should trigger scan
+  useEffect(() => {
+    if (location.state && location.state.triggerScan) {
+      handleScan();
+    }
+  }, []);
+
+  // Automatically scan for subscriptions when new emails are fetched
+  useEffect(() => {
+    if (emails && emails.length > 0 && !scanning && !subscriptionsReady && !loading && !emailsLoading) {
+      handleScan(emails);
+    }
+    // eslint-disable-next-line
+  }, [emails]);
 
   // Use subscriptions directly, merging with local state if needed
   const mergedSubscriptions = subscriptions.map(s => ({
@@ -67,10 +85,13 @@ const SubscriptionsPage = () => {
 
   const filteredSubscriptions = mergedSubscriptions.filter(sub => {
     let matchesTab = false;
+    // Only treat as archived if sub.archived === true AND label starts with PuchInboxSub:
     if (activeTab === "all") {
       matchesTab = true;
     } else if (activeTab === "Archived") {
-      matchesTab = sub.archived === true;
+      matchesTab = sub.archived === true && (
+        (sub.label && sub.label.startsWith("PuchInboxSub:"))
+      );
     } else {
       matchesTab = sub.category === activeTab && sub.archived !== true;
     }
@@ -88,20 +109,57 @@ const SubscriptionsPage = () => {
   ];
 
   // Scan for new subscriptions (refresh from backend)
-  const handleScan = async () => {
+  const handleScan = async (emailsArg?: any[]) => {
     hasFetched.current = false;
     setScanning(true);
+    setSubscriptionsReady(false);
     setUnsubscribeError(null);
     setUnsubscribeSuccess(null);
     try {
-      const res = await fetch('http://localhost:4000/api/user/emails/subscriptions/scan', { credentials: 'include' });
-      const data = await res.json();
-      if (data.status === 'done') {
-        setSubscriptions(data.emails || []);
-        setUnsubscribedAlerts(data.unsubscribedAlerts || []);
+      const emailsToSend = emailsArg || emails;
+      const res = await fetch('http://localhost:4000/api/user/emails/subscriptions/scan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ emails: emailsToSend })
+      });
+      const contentType = res.headers.get('content-type');
+      if (!res.ok) {
+        setError('Failed to scan subscriptions');
+        setScanning(false);
+        return;
       }
-    } catch {}
-    setScanning(false);
+      if (contentType && contentType.includes('application/json')) {
+        const data = await res.json();
+        if (data.status === 'done') {
+          // Always fetch the latest subscriptions from MongoDB after scan
+          try {
+            setLoading(true);
+            const subsRes = await fetch('http://localhost:4000/api/user/emails/subscriptions', { credentials: 'include' });
+            const subsData = await subsRes.json();
+            if (subsData.status === 'done' && Array.isArray(subsData.emails)) {
+              setSubscriptions(subsData.emails);
+              setSubscriptionsReady(true);
+              setError(null);
+            } else {
+              setError(subsData.error || 'Failed to load subscriptions after scan');
+            }
+          } catch (fetchErr) {
+            setError('Failed to load subscriptions after scan');
+          } finally {
+            setLoading(false);
+          }
+        } else {
+          setError(data.error || 'Failed to scan subscriptions');
+        }
+      } else {
+        setError('Failed to scan subscriptions');
+      }
+    } catch (err) {
+      setError('Failed to scan subscriptions');
+    } finally {
+      setScanning(false);
+    }
   };
 
   // Archive handler
@@ -129,7 +187,11 @@ const SubscriptionsPage = () => {
 
   const handleArchive = async (subscription: any, labelOverride?: string) => {
     setArchiving(subscription.email);
-    const labelToUse = labelOverride || (customLabel.trim() ? customLabel.trim() : selectedLabel);
+    let labelToUse = labelOverride || (customLabel.trim() ? customLabel.trim() : selectedLabel);
+    // Always prefix with PuchInboxSub:
+    if (!labelToUse.startsWith("PuchInboxSub:")) {
+      labelToUse = `PuchInboxSub:${labelToUse}`;
+    }
     const res = await fetch('http://localhost:4000/api/user/emails/archive', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -272,7 +334,7 @@ const SubscriptionsPage = () => {
             <div className="flex items-center justify-between">
               <CardTitle>Filter Subscriptions</CardTitle>
               <div className="flex gap-2">
-                <Button variant="outline" size="sm" onClick={handleScan}>
+                <Button variant="outline" size="sm" onClick={() => handleScan()}>
                   <RefreshCw className="h-4 w-4 mr-2" />
                   Scan for New Subscriptions
                 </Button>
@@ -303,7 +365,7 @@ const SubscriptionsPage = () => {
 
       {/* Subscriptions List */}
       <div className="flex-1 min-h-0 max-h-full overflow-y-auto px-6 pb-6">
-        {(loading || scanning || !subscriptionsReady) ? (
+        {(loading || !subscriptionsReady) ? (
           <div className="text-center py-12 text-muted-foreground">Processing, validating, and computing your subscriptions...</div>
         ) : error ? (
           <div className="text-center py-12 text-red-500">{error}</div>
@@ -326,61 +388,66 @@ const SubscriptionsPage = () => {
                 const finalStatus = stateStatus || fallbackStatus || 'active';
                 return finalStatus;
               })()}
-              onUnsubscribe={async () => {
-                setUnsubscribing(subscription.email);
-                setUnsubscribeError(null);
-                setUnsubscribeSuccess(null);
-                try {
-                  const result = await unsubscribeFromProvider({ email: subscription.email, messageId: subscription.id || subscription.messageId });
-                  if (result.url) {
-                    setPendingManualUnsub({ url: result.url, message: result.message });
-                    // Sync with backend for manual unsubscribe
-                    await fetch('http://localhost:4000/api/user/unsubscribe', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      credentials: 'include',
-                      body: JSON.stringify({
-                        email: subscription.email,
-                        messageId: subscription.id || subscription.messageId,
-                        lastSeen: subscription.date
-                      })
-                    });
-                    setSubscriptionsState(prev => ({
-                      ...prev,
-                      [subscription.email.toLowerCase()]: {
-                        ...subscription,
-                        status: 'unsubscribed',
+              onUnsubscribe={
+                // Only show the Unsubscribe button for subscriptions that are not archived and not already unsubscribed
+                (subscription.archived !== true && ((subscriptionsState[subscription.email?.toLowerCase()]?.status || subscription.status || 'active') !== 'unsubscribed'))
+                  ? async () => {
+                      setUnsubscribing(subscription.email);
+                      setUnsubscribeError(null);
+                      setUnsubscribeSuccess(null);
+                      try {
+                        const result = await unsubscribeFromProvider({ email: subscription.email, messageId: subscription.id || subscription.messageId });
+                        if (result.url) {
+                          setPendingManualUnsub({ url: result.url, message: result.message });
+                          // Sync with backend for manual unsubscribe
+                          await fetch('http://localhost:4000/api/user/unsubscribe', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            credentials: 'include',
+                            body: JSON.stringify({
+                              email: subscription.email,
+                              messageId: subscription.id || subscription.messageId,
+                              lastSeen: subscription.date
+                            })
+                          });
+                          setSubscriptionsState(prev => ({
+                            ...prev,
+                            [subscription.email.toLowerCase()]: {
+                              ...subscription,
+                              status: 'unsubscribed',
+                            }
+                          }));
+                          toast({
+                            title: 'Marked as Unsubscribed',
+                            description: `${subscription.name || subscription.email} is now marked as unsubscribed.`
+                          });
+                        } else {
+                          // Automatic unsubscribe: backend already called in unsubscribeFromProvider
+                          toast({
+                            title: 'Successfully unsubscribed',
+                            description: `${subscription.name || subscription.email} has been unsubscribed.`,
+                          });
+                          setSubscriptionsState(prev => ({
+                            ...prev,
+                            [subscription.email.toLowerCase()]: {
+                              ...subscription,
+                              status: 'unsubscribed',
+                            }
+                          }));
+                        }
+                      } catch (err: any) {
+                        setUnsubscribeError(err.message);
+                        toast({
+                          title: 'Unsubscribe Failed',
+                          description: err.message || 'Failed to unsubscribe. Please try again later.',
+                          variant: 'destructive',
+                        });
+                      } finally {
+                        setUnsubscribing(null);
                       }
-                    }));
-                    toast({
-                      title: 'Marked as Unsubscribed',
-                      description: `${subscription.name || subscription.email} is now marked as unsubscribed.`
-                    });
-                  } else {
-                    // Automatic unsubscribe: backend already called in unsubscribeFromProvider
-                    toast({
-                      title: 'Successfully unsubscribed',
-                      description: `${subscription.name || subscription.email} has been unsubscribed.`,
-                    });
-                    setSubscriptionsState(prev => ({
-                      ...prev,
-                      [subscription.email.toLowerCase()]: {
-                        ...subscription,
-                        status: 'unsubscribed',
-                      }
-                    }));
-                  }
-                } catch (err: any) {
-                  setUnsubscribeError(err.message);
-                  toast({
-                    title: 'Unsubscribe Failed',
-                    description: err.message || 'Failed to unsubscribe. Please try again later.',
-                    variant: 'destructive',
-                  });
-                } finally {
-                  setUnsubscribing(null);
-                }
-              }}
+                    }
+                  : undefined
+              }
               onSubscribe={async () => {
                 // Sync with backend for re-subscribe
                 await fetch('http://localhost:4000/api/user/emails/mark-subscribed', {
@@ -401,11 +468,16 @@ const SubscriptionsPage = () => {
             />
           ))
         ) : (
-          <Card className="bg-card text-card-foreground">
-            <CardContent className="text-center py-12">
-              <p className="text-muted-foreground">No subscriptions found matching your criteria.</p>
-            </CardContent>
-          </Card>
+
+          (loading || !subscriptionsReady) ? (
+            <div className="text-center py-12 text-muted-foreground">Processing, validating, and computing your subscriptions...</div>
+          ) : (
+            <Card className="bg-card text-card-foreground">
+              <CardContent className="text-center py-12">
+                <p className="text-muted-foreground">No subscriptions found matching your criteria.</p>
+              </CardContent>
+            </Card>
+          )
         ))}
         {unsubscribeError && (
           <div className="text-center text-red-500 py-2">{unsubscribeError}</div>

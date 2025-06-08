@@ -10,8 +10,12 @@ import AutomationPage from "./AutomationPage";
 import ProfilePage from "./ProfilePage";
 import SettingsPage from "./SettingsPage";
 
-const DashboardLayout = () => {
-  const [activeTab, setActiveTab] = useState('dashboard');
+interface DashboardLayoutProps {
+  initialTab?: string;
+}
+
+const DashboardLayout: React.FC<DashboardLayoutProps> = ({ initialTab = 'dashboard' }) => {
+  const [activeTab, setActiveTab] = useState(initialTab);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const avatarRef = useRef<HTMLDivElement>(null);
@@ -41,6 +45,27 @@ const DashboardLayout = () => {
         navigate("/login");
       });
   }, [navigate]);
+
+  useEffect(() => {
+    setActiveTab(initialTab);
+  }, [initialTab]);
+
+  const handleTabClick = (tabId: string) => {
+    setActiveTab(tabId);
+    switch (tabId) {
+      case 'dashboard':
+        navigate('/dashboard');
+        break;
+      case 'subscriptions':
+        navigate('/subscriptions');
+        break;
+      case 'inbox':
+        navigate('/smart-inbox');
+        break;
+      default:
+        setActiveTab(tabId);
+    }
+  };
 
   const renderContent = () => {
     switch (activeTab) {
@@ -94,7 +119,7 @@ const DashboardLayout = () => {
                 {navItems.map((item) => (
                   <button
                     key={item.id}
-                    onClick={() => setActiveTab(item.id)}
+                    onClick={() => handleTabClick(item.id)}
                     className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-all duration-200 text-left ${
                       activeTab === item.id
                         ? 'bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-700'

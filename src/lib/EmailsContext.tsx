@@ -35,10 +35,10 @@ export const EmailsProvider = ({ children }: { children: ReactNode }) => {
           setError(null);
         } else if (isMounted && cachedData.status === "processing") {
           setEmails([]);
-          setError("Scan is still processing. Please wait...");
+          setError("Processing, validating, and computing your emails...");
         } else if (isMounted) {
           setEmails([]);
-          setError("No emails found.");
+          setError("Processing, validating, and computing your emails...");
         }
       } catch (err: any) {
         if (isMounted) {
@@ -81,25 +81,24 @@ export const EmailsProvider = ({ children }: { children: ReactNode }) => {
           setError(null);
         } else {
           // No cache found (first time login or cache expired), automatically trigger a scan
-          console.log("No cache found, starting initial Gmail scan...");
           const scanData = await forceScanEmails();
           if (scanData.status === "done") {
             setEmails(Array.isArray(scanData.emails) ? scanData.emails : []);
             setError(null);
           } else if (scanData.status === "processing") {
             setEmails([]);
-            setError("Scanning your Gmail for subscriptions. This may take a moment...");
+            setError("Processing, validating, and computing your emails...");
           } else {
             setEmails([]);
-            setError("No emails found.");
+            setError("Processing, validating, and computing your emails...");
           }
         }
       } else if (data.status === "processing") {
         setEmails([]);
-        setError("Scan is still processing. Please wait...");
+        setError("Processing, validating, and computing your emails...");
       } else {
         setEmails([]);
-        setError("No emails found.");
+        setError("Processing, validating, and computing your emails...");
       }
     } catch (err: any) {
       setError(err?.message || "Failed to fetch emails");

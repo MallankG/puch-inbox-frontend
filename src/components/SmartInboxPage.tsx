@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/select";
 import { fetchDailySummary, generateDailySummary } from "../lib/summaryApi";
 import ReactMarkdown from 'react-markdown';
+import { useLocation } from 'react-router-dom';
 
 const SmartInboxPage = () => {
   const [activeTab, setActiveTab] = useState("primary");
@@ -168,7 +169,7 @@ const SmartInboxPage = () => {
       initialHashSet.current = true;
       return;
     }
-    if (loading || scanning || isCached) return;
+    if (loading || scanning || isCached === true) return; // Only skip if isCached is explicitly true
     if (lastDeletedId) return;
     if (newHash && newHash !== lastEmailHash) {
       setLastEmailHash(newHash);
@@ -176,6 +177,26 @@ const SmartInboxPage = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [emails, loading, scanning, isCached, lastDeletedId]);
+
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location.state && location.state.triggerRefreshSummary) {
+      // Simulate clicking the Refresh Summary button
+      (async () => {
+        setSummaryLoading(true);
+        setSummaryError(null);
+        try {
+          await fetchAndSet();
+          await handleGenerateSummary();
+        } catch (err: any) {
+          setSummaryError(err.message || "Failed to refresh summary");
+        } finally {
+          setSummaryLoading(false);
+        }
+      })();
+    }
+  }, []);
 
   return (
     <div className="flex flex-col space-y-6 min-h-screen" style={{ overflowY: 'auto' }}>
@@ -242,17 +263,16 @@ const SmartInboxPage = () => {
 
       {/* Email List */}
       <div className="space-y-3">
-        {loading ? (
+        {loading || scanning ? (
           <Card className="bg-card text-card-foreground">
             <CardContent className="text-center py-12">
-              <p className="text-muted-foreground">Loading emails...</p>
+              <p className="text-muted-foreground">Processing, validating, and computing your emails...</p>
             </CardContent>
           </Card>
         ) : error ? (
           <Card className="bg-card text-card-foreground">
             <CardContent className="text-center py-12">
               <p className="text-red-500">{error}</p>
-              <Button onClick={fetchAndSet} className="mt-4">Retry</Button>
             </CardContent>
           </Card>
         ) : filteredEmails.length > 0 ? (
